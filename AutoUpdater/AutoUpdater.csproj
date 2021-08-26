@@ -16,9 +16,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CarinaStudio.AppBase.Application" Version="0.22.0.825" />
-    <PackageReference Include="CarinaStudio.AppBase.AutoUpdate" Version="0.22.0.825" />
-    <PackageReference Include="CarinaStudio.AppBase.Core" Version="0.22.0.825" />
+    <PackageReference Include="CarinaStudio.AppBase.Application" Version="0.23.0.826" />
+    <PackageReference Include="CarinaStudio.AppBase.AutoUpdate" Version="0.23.0.826" />
+    <PackageReference Include="CarinaStudio.AppBase.Core" Version="0.23.0.826" />
   </ItemGroup>
 
 </Project>
