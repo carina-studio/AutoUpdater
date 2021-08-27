@@ -7,6 +7,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="CarinaStudio.AutoUpdater.MainWindow"
 				CanResize="False"
+				Icon="AppIcon.ico"
 				SizeToContent="Height"
         Title="{StaticResource String.MainWindow.Title}"
 				Width="500"
