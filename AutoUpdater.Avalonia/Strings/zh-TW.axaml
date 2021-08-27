@@ -1,7 +1,25 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 										xmlns:sys="using:System">
+
+	<!-- Common -->
+	<sys:String x:Key="String.Common.Application">應用程式</sys:String>
+	<sys:String x:Key="String.Common.Cancel">取消</sys:String>
+	<sys:String x:Key="String.Common.Complete">完成</sys:String>
 	
-	
+	<!-- MainWindow -->
+	<sys:String x:Key="String.MainWindow.Title">自動更新</sys:String>
+
+	<!-- UpdatingSession -->
+	<sys:String x:Key="String.UpdatingSession.BackingUpApplication">正在備份 {0}…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.DownloadingPackage">正在下載升級封裝 ({0})…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.InstallingPackage">正在升級 {0}…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.InstallingPackage.WithVersion">正在升級 {0} 至 {1}…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.Preparing">準備中…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.RestoringApplication">正在復原 {0}…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingCancelled">升級已經取消。</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingFailed">無法成功升級 {0}。</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingSucceeded">{0} 升級完成。</sys:String>
+	<sys:String x:Key="String.UpdatingSession.WaitingForProcess">正在等待關閉 {0}…</sys:String>
     
 </ResourceDictionary>

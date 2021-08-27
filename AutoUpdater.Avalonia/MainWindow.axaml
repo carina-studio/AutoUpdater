@@ -1,0 +1,60 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ia="using:Avalonia.Xaml.Interactivity"
+        xmlns:iaCore="using:Avalonia.Xaml.Interactions.Core"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="CarinaStudio.AutoUpdater.MainWindow"
+				CanResize="False"
+				SizeToContent="Height"
+        Title="{StaticResource String.MainWindow.Title}"
+				Width="500"
+				WindowStartupLocation="CenterScreen">
+
+	<!-- Styles -->
+	<Window.Styles>
+		<Style Selector="Button.ControlButton">
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
+			<Setter Property="Margin" Value="0,15,0,0"/>
+			<Setter Property="MinWidth" Value="100"/>
+			<Setter Property="Padding" Value="10,5,10,5"/>
+		</Style>
+	</Window.Styles>
+	
+	<!-- Content -->
+	<Grid ColumnDefinitions="Auto,*" Margin="20,15,20,15" RowDefinitions="Auto,Auto,Auto">
+
+		<!-- Message -->
+		<TextBlock Grid.Column="1" Text="{Binding Message}" TextTrimming="WordEllipsis"/>
+
+		<!-- Progress -->
+		<ProgressBar Grid.Column="1" Grid.Row="1" IsIndeterminate="{Binding !IsProgressAvailable}" Margin="0,10,0,0" Maximum="100" Value="{Binding ProgressPercentage}">
+			<ia:Interaction.Behaviors>
+				<iaCore:DataTriggerBehavior Binding="{Binding IsUpdatingCompleted}" Value="True">
+					<iaCore:ChangePropertyAction PropertyName="Opacity" Value="0"/>
+				</iaCore:DataTriggerBehavior>
+			</ia:Interaction.Behaviors>
+		</ProgressBar>
+
+		<!-- Button-->
+		<Button Classes="ControlButton" Command="{Binding CancelUpdatingCommand}" Content="{StaticResource String.Common.Cancel}" Grid.ColumnSpan="2" Grid.Row="2" IsVisible="{Binding !IsWaitingForProcess}">
+			<ia:Interaction.Behaviors>
+				<iaCore:DataTriggerBehavior Binding="{Binding IsUpdatingCompleted}" Value="True">
+					<iaCore:ChangePropertyAction PropertyName="IsVisible" Value="False"/>
+				</iaCore:DataTriggerBehavior>
+			</ia:Interaction.Behaviors>
+		</Button>
+		<Button Classes="ControlButton" Command="{Binding CancelWaitingForProcess}" Content="{StaticResource String.Common.Cancel}" Grid.ColumnSpan="2" Grid.Row="2" IsVisible="{Binding IsWaitingForProcess}">
+			<ia:Interaction.Behaviors>
+				<iaCore:DataTriggerBehavior Binding="{Binding IsUpdatingCompleted}" Value="True">
+					<iaCore:ChangePropertyAction PropertyName="IsVisible" Value="False"/>
+				</iaCore:DataTriggerBehavior>
+			</ia:Interaction.Behaviors>
+		</Button>
+		<Button Classes="ControlButton" Command="{Binding $parent[Window].Close}" Content="{StaticResource String.Common.Complete}" Grid.ColumnSpan="2" Grid.Row="2" IsVisible="{Binding IsUpdatingCompleted}"/>
+		
+	</Grid>
+	
+</Window>

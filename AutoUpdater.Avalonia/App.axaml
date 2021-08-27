@@ -13,7 +13,6 @@
 	
 	<!-- Styles -->
 	<Application.Styles>
-		<FluentTheme Mode="Light"/>
 	</Application.Styles>
     
 </Application>

@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.MarkupExtensions;
-using Avalonia.Markup.Xaml.Styling;
+using Avalonia.Themes.Fluent;
 using CarinaStudio.AutoUpdater.ViewModels;
 using CarinaStudio.Configuration;
 using CarinaStudio.Threading;
@@ -30,8 +30,10 @@ namespace CarinaStudio.AutoUpdater
 		string? appDirectoryPath;
 		string? appExePath;
 		string? appName;
+		bool darkMode;
 		readonly ILogger logger;
 		Uri? packageManifestUri;
+		int? processIdToWaitFor;
 		volatile SynchronizationContext? synchronizationContext;
 		UpdatingSession? updatingSession;
 
@@ -144,7 +146,10 @@ namespace CarinaStudio.AutoUpdater
 			}
 
 			// load styles
-			//
+			this.Styles.Add(new FluentTheme(new Uri("avares://AutoUpdater.Avalonia"))
+			{
+				Mode = this.darkMode ? FluentThemeMode.Dark : FluentThemeMode.Light
+			});
 
 			// create updating session
 			this.updatingSession = new UpdatingSession(this)
@@ -152,10 +157,11 @@ namespace CarinaStudio.AutoUpdater
 				ApplicationDirectoryPath = this.appDirectoryPath,
 				ApplicationName = this.appName,
 				PackageManifestUri = this.packageManifestUri,
+				ProcessIdToWaitFor = this.processIdToWaitFor,
 			};
 
 			// show main window
-			//
+			new MainWindow() { DataContext = this.updatingSession }.Show();
 		}
 
 
@@ -181,6 +187,9 @@ namespace CarinaStudio.AutoUpdater
 						}
 						else
 							this.logger.LogError("No culture name specified");
+						break;
+					case "-dark-mode":
+						this.darkMode = true;
 						break;
 					case "-directory":
 						if (i < argCount - 1)
@@ -236,7 +245,21 @@ namespace CarinaStudio.AutoUpdater
 						}
 						break;
 					case "-wait-for-process":
-						//
+						if (i < argCount - 1)
+						{
+							if (this.processIdToWaitFor != null)
+							{
+								this.logger.LogError("Duplicate process ID specified");
+								return false;
+							}
+							else if (int.TryParse(args[++i], out var pid))
+								this.processIdToWaitFor = pid;
+							else
+							{
+								this.logger.LogError($"Invalid process ID: {args[i]}");
+								return false;
+							}
+						}
 						break;
 				}
 			}
@@ -256,7 +279,7 @@ namespace CarinaStudio.AutoUpdater
 
 		// Implementations.
 		public Assembly Assembly { get; } = Assembly.GetExecutingAssembly();
-		public CultureInfo CultureInfo { get; private set; } = CultureInfo.GetCultureInfo("en-US");
+		public CultureInfo CultureInfo { get; private set; } = CultureInfo.CurrentCulture;
 		public string? GetString(string key, string? defaultValue = null)
 		{
 			if (this.Resources.TryGetResource($"String.{key}", out var value) && value is string str)

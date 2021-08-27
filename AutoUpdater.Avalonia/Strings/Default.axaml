@@ -1,7 +1,25 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 										xmlns:sys="using:System">
+
+	<!-- Common -->
+	<sys:String x:Key="String.Common.Application">Application</sys:String>
+	<sys:String x:Key="String.Common.Cancel">Cancel</sys:String>
+	<sys:String x:Key="String.Common.Complete">Complete</sys:String>
 	
-	
+	<!-- MainWindow -->
+	<sys:String x:Key="String.MainWindow.Title">Auto Update</sys:String>
+
+	<!-- UpdatingSession -->
+	<sys:String x:Key="String.UpdatingSession.BackingUpApplication">Backing-up {0}…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.DownloadingPackage">Downloading update package ({0})…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.InstallingPackage">Updating {0}…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.InstallingPackage.WithVersion">Updating {0} to {1}…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.Preparing">Preparing…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.RestoringApplication">Restoring {0}…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingCancelled">Updating has been cancelled.</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingFailed">Failed to update {0}.</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingSucceeded">Complete updating {0}.</sys:String>
+	<sys:String x:Key="String.UpdatingSession.WaitingForProcess">Waiting for closing {0}…</sys:String>
     
 </ResourceDictionary>

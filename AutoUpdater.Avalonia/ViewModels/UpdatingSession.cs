@@ -3,12 +3,11 @@ using CarinaStudio.AutoUpdate.Resolvers;
 using CarinaStudio.IO;
 using CarinaStudio.Net;
 using CarinaStudio.Threading;
+using CarinaStudio.ViewModels;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,7 +20,9 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 	{
 		// Fields.
 		Uri? packageManifestUri;
+		int? processIdToWaitFor;
 		CancellationTokenSource? processWaitingCancellationTokenSource;
+		readonly ScheduledAction updateMessageAction;
 
 
 		/// <summary>
@@ -29,7 +30,9 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		/// </summary>
 		/// <param name="app">Application.</param>
 		public UpdatingSession(IApplication app) : base(app)
-		{ }
+		{
+			this.updateMessageAction = new ScheduledAction(this.UpdateMessage);
+		}
 
 
 		/// <summary>
@@ -74,6 +77,27 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		public bool IsWaitingForProcess { get; private set; }
 
 
+		// Property changed.
+		protected override void OnPropertyChanged(ObservableProperty property, object? oldValue, object? newValue)
+		{
+			base.OnPropertyChanged(property, oldValue, newValue);
+			if (property == DownloadedPackageSizeProperty
+				|| property == IsUpdatingCancellingProperty
+				|| property == PackageSizeProperty)
+			{
+				this.updateMessageAction.Schedule();
+			}
+		}
+
+
+		// Called when state of updater changed.
+		protected override void OnUpdaterStateChanged()
+		{
+			base.OnUpdaterStateChanged();
+			this.updateMessageAction.Schedule();
+		}
+
+
 		/// <summary>
 		/// Get or set URI of package manifest.
 		/// </summary>
@@ -95,19 +119,95 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 
 
 		/// <summary>
-		/// Wait for given process to be completed before starting updating.
+		/// Get or set ID of process to wait for before updating.
 		/// </summary>
-		/// <param name="processId">Process ID.</param>
+		public int? ProcessIdToWaitFor
+		{
+			get => this.processIdToWaitFor;
+			set
+			{
+				this.VerifyAccess();
+				this.VerifyDisposed();
+				if (this.IsUpdating || this.IsUpdatingCompleted)
+					throw new InvalidOperationException();
+				this.processIdToWaitFor = value;
+			}
+		}
+
+
+		// Update message according to current state.
+		void UpdateMessage()
+		{
+			if (this.IsDisposed)
+				return;
+			var appName = this.ApplicationName ?? this.Application.GetString("Common.Application");
+			if (this.IsWaitingForProcess)
+				this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.WaitingForProcess", appName));
+			else if (this.IsUpdatingCompleted)
+			{
+				if (this.IsUpdatingCancelled)
+					this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.UpdatingCancelled"));
+				else if (this.IsUpdatingFailed)
+					this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.UpdatingFailed", appName));
+				else
+					this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.UpdatingSucceeded", appName));
+			}
+			else
+			{
+				switch (this.UpdaterState)
+				{
+					case UpdaterState.BackingUpApplication:
+						this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.BackingUpApplication", appName));
+						break;
+					case UpdaterState.DownloadingPackage:
+						{
+							var downloadSizeString = this.DownloadedPackageSize.ToFileSizeString();
+							var packageSize = this.PackageSize.GetValueOrDefault();
+							if (packageSize > 0)
+								this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.DownloadingPackage", $"{downloadSizeString} / {packageSize.ToFileSizeString()}"));
+							else
+								this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.DownloadingPackage", downloadSizeString));
+						}
+						break;
+					case UpdaterState.InstallingPackage:
+						{
+							var version = this.UpdatingVersion;
+							if (version != null)
+								this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.InstallingPackage.WithVersion", appName, version));
+							else
+								this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.InstallingPackage", appName));
+						}
+						break;
+					case UpdaterState.ResolvingPackage:
+						this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.Preparing"));
+						break;
+					case UpdaterState.RestoringApplication:
+						this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.RestoringApplication", appName));
+						break;
+					default:
+						this.SetValue(MessageProperty, null);
+						break;
+				}
+			}
+		}
+
+
+		/// <summary>
+		/// Wait for process specified by <see cref="ProcessIdToWaitFor"/> to be completed before starting updating.
+		/// </summary>
 		/// <returns>Task of waiting.</returns>
-		public async Task WaitForProcess(int processId)
+		public async Task WaitForProcess()
 		{
 			// check state
 			this.VerifyAccess();
 			this.VerifyDisposed();
+			if (this.processIdToWaitFor == null)
+				return;
 			if (this.IsWaitingForProcess)
 				throw new InvalidOperationException();
 
 			// find process
+			var processId = this.processIdToWaitFor.GetValueOrDefault();
 			var process = Global.Run(() =>
 			{
 				try
@@ -129,26 +229,32 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 			// wait for completion
 			this.IsWaitingForProcess = true;
 			this.OnPropertyChanged(nameof(IsWaitingForProcess));
-			using (process)
+			this.updateMessageAction.Schedule();
+			try
 			{
-				this.processWaitingCancellationTokenSource = new CancellationTokenSource();
-				try
+				using (process)
 				{
+					this.processWaitingCancellationTokenSource = new CancellationTokenSource();
 					this.Logger.LogDebug($"Start waiting for process {processId}");
 					await process.WaitForExitAsync(this.processWaitingCancellationTokenSource.Token);
 					this.Logger.LogDebug($"Complete waiting for process {processId}");
 				}
-				catch (TaskCanceledException)
+			}
+			catch (Exception ex)
+			{
+				if (ex is TaskCanceledException)
 				{
 					this.Logger.LogWarning($"Waiting for process {processId} has been cancelled");
+					throw;
 				}
-				catch (Exception ex)
-				{
-					this.Logger.LogError(ex, $"Error occurred while waiting for process {processId}");
-				}
+				this.Logger.LogError(ex, $"Error occurred while waiting for process {processId}");
 			}
-			this.IsWaitingForProcess = false;
-			this.OnPropertyChanged(nameof(IsWaitingForProcess));
+			finally
+			{
+				this.IsWaitingForProcess = false;
+				this.OnPropertyChanged(nameof(IsWaitingForProcess));
+				this.updateMessageAction.Schedule();
+			}
 		}
 	}
 }
