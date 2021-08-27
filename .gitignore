@@ -3,3 +3,5 @@ obj
 bin
 AutoUpdater.csproj.user
 /AutoUpdater.Avalonia/Properties/launchSettings.json
+/AutoUpdater.Avalonia/Properties/PublishProfiles/*.user
+/AutoUpdater.Avalonia/AutoUpdater.Avalonia.csproj.user
