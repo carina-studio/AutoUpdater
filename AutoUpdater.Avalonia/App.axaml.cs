@@ -7,6 +7,7 @@ using CarinaStudio.AutoUpdater.ViewModels;
 using CarinaStudio.Configuration;
 using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
+using Mono.Unix;
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -75,19 +76,11 @@ namespace CarinaStudio.AutoUpdater
 					{
 						try
 						{
-							using var chmodeProcess = Process.Start(new ProcessStartInfo()
-							{
-								Arguments = $"-c chmod +x \"{app.appExePath}\"",
-								CreateNoWindow = true,
-								FileName = "/bin/bash",
-								RedirectStandardOutput = true,
-								UseShellExecute = false,
-								WindowStyle = ProcessWindowStyle.Hidden,
-							});
-							if (chmodeProcess != null)
-								chmodeProcess.WaitForExit(5000);
+							var fileInfo = new UnixFileInfo(app.appExePath);
+							if (fileInfo.Exists)
+								fileInfo.FileAccessPermissions |= (FileAccessPermissions.UserExecute | FileAccessPermissions.GroupExecute);
 							else
-								app.logger.LogError($"Unable to mark '{app.appExePath}' as executable");
+								app.logger.LogError($"Cannot find executable '{app.appExePath}'");
 						}
 						catch (Exception ex)
 						{
