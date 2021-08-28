@@ -99,8 +99,12 @@ namespace CarinaStudio.AutoUpdater
 			{
 				this.synchronizationContext.Post(() =>
 				{
-					if (this.DataContext is ViewModels.UpdatingSession session && session.IsUpdatingSucceeded)
+					if (this.DataContext is ViewModels.UpdatingSession session 
+						&& session.IsUpdatingSucceeded
+						&& ((App)App.Current).IsAppExecutableSpecified)
+					{
 						this.Close();
+					}
 				});
 			}
 		}

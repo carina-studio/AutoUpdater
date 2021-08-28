@@ -53,6 +53,12 @@ namespace CarinaStudio.AutoUpdater
 		public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
 
+		/// <summary>
+		/// Check whether executable of application has been specified or not.
+		/// </summary>
+		public bool IsAppExecutableSpecified { get => !string.IsNullOrWhiteSpace(this.appExePath); }
+
+
 		// Program entry.
 		public static void Main(string[] args)
 		{
@@ -67,7 +73,7 @@ namespace CarinaStudio.AutoUpdater
 
 			// start application
 			var app = (App)App.Current;
-			if (app.updatingSession?.IsUpdatingCompleted == true && !string.IsNullOrWhiteSpace(app.appExePath))
+			if (app.updatingSession?.IsUpdatingCompleted == true && app.IsAppExecutableSpecified)
 			{
 				try
 				{
@@ -76,7 +82,7 @@ namespace CarinaStudio.AutoUpdater
 					{
 						try
 						{
-							var fileInfo = new UnixFileInfo(app.appExePath);
+							var fileInfo = new UnixFileInfo(app.appExePath.AsNonNull());
 							if (fileInfo.Exists)
 								fileInfo.FileAccessPermissions |= (FileAccessPermissions.UserExecute | FileAccessPermissions.GroupExecute);
 							else
