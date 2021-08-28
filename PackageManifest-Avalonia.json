@@ -1,17 +1,17 @@
 {
 	"Name": "AutoUpdater",
-	"Version": "0.9.0.827",
-	"PageUri": "https://github.com/carina-studio/AutoUpdater/releases/tag/0.9.0.827",
+	"Version": "0.9.1.828",
+	"PageUri": "https://github.com/carina-studio/AutoUpdater/releases/tag/0.9.1.828",
 	"Packages": [
 		{
 			"Architecture": "X64",
 			"OperatingSystem": "Windows",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.9.0.827/AutoUpdter-Avalonia-0.9.0.827-win-x64.zip"
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.9.1.828/AutoUpdater-Avalonia-0.9.1.828-win-x64.zip"
 		},
 		{
 			"Architecture": "X64",
 			"OperatingSystem": "Linux",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.9.0.827/AutoUpdter-Avalonia-0.9.0.827-linux-x64.zip"
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.9.1.828/AutoUpdater-Avalonia-0.9.1.828-linux-x64.zip"
 		}
 	]
 }
