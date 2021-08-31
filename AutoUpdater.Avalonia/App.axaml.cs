@@ -11,10 +11,7 @@ using Mono.Unix;
 using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace CarinaStudio.AutoUpdater
 {
@@ -31,11 +28,11 @@ namespace CarinaStudio.AutoUpdater
 		string? appDirectoryPath;
 		string? appExePath;
 		string? appName;
+		CultureInfo cultureInfo = CultureInfo.CurrentCulture;
 		bool darkMode;
 		readonly ILogger logger;
 		Uri? packageManifestUri;
 		int? processIdToWaitFor;
-		volatile SynchronizationContext? synchronizationContext;
 		UpdatingSession? updatingSession;
 
 
@@ -45,7 +42,6 @@ namespace CarinaStudio.AutoUpdater
 		public App()
 		{
 			this.logger = this.LoggerFactory.CreateLogger("App");
-			this.RootPrivateDirectoryPath = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName) ?? throw new InvalidOperationException();
 		}
 
 		
@@ -108,9 +104,6 @@ namespace CarinaStudio.AutoUpdater
 		// Called when Avalonia initialized.
 		public override void OnFrameworkInitializationCompleted()
 		{
-			// setup thread
-			this.synchronizationContext = SynchronizationContext.Current;
-
 			// call base
 			base.OnFrameworkInitializationCompleted();
 
@@ -177,7 +170,7 @@ namespace CarinaStudio.AutoUpdater
 						{
 							try
 							{
-								this.CultureInfo = CultureInfo.GetCultureInfo(args[++i]);
+								this.cultureInfo = CultureInfo.GetCultureInfo(args[++i]);
 							}
 							catch 
 							{
@@ -277,20 +270,16 @@ namespace CarinaStudio.AutoUpdater
 
 
 		// Implementations.
-		public Assembly Assembly { get; } = Assembly.GetExecutingAssembly();
-		public CultureInfo CultureInfo { get; private set; } = CultureInfo.CurrentCulture;
-		public string? GetString(string key, string? defaultValue = null)
+		public override CultureInfo CultureInfo { get => this.cultureInfo; }
+		public override string? GetString(string key, string? defaultValue = null)
 		{
 			if (this.Resources.TryGetResource($"String.{key}", out var value) && value is string str)
 				return str;
 			return defaultValue;
 		}
-		public bool IsShutdownStarted { get; private set; }
-		public ILoggerFactory LoggerFactory { get; } = new LoggerFactory();
-		public ISettings PersistentState { get; } = new MemorySettings();
-		public string RootPrivateDirectoryPath { get; }
-		public ISettings Settings { get; } = new MemorySettings();
-		public event EventHandler? StringsUpdated;
-		public SynchronizationContext SynchronizationContext { get => this.synchronizationContext ?? throw new InvalidOperationException(); }
+		public override bool IsShutdownStarted { get; }
+		public override ILoggerFactory LoggerFactory { get; } = new LoggerFactory();
+		public override ISettings PersistentState { get; } = new MemorySettings();
+		public override ISettings Settings { get; } = new MemorySettings();
 	}
 }
