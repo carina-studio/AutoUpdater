@@ -46,7 +46,7 @@ namespace CarinaStudio.AutoUpdater
 
 
 		// Window opened.
-		protected override async void OnOpened(EventArgs e)
+		protected override void OnOpened(EventArgs e)
 		{
 			// call base
 			base.OnOpened(e);
@@ -54,20 +54,23 @@ namespace CarinaStudio.AutoUpdater
 			// start updating
 			if (this.DataContext is ViewModels.UpdatingSession session)
 			{
-				// wait for process
-				try
+				this.synchronizationContext.PostDelayed(async () =>
 				{
-					await session.WaitForProcess();
-				}
-				catch(TaskCanceledException)
-				{
-					this.synchronizationContext.Post(this.Close);
-					return;
-				}
+					// wait for process
+					try
+					{
+						await session.WaitForProcess();
+					}
+					catch (TaskCanceledException)
+					{
+						this.synchronizationContext.Post(this.Close);
+						return;
+					}
 
-				// start updating
-				if (!session.StartUpdatingCommand.TryExecute())
-					this.synchronizationContext.Post(this.Close);
+					// start updating
+					if (!session.StartUpdatingCommand.TryExecute())
+						this.synchronizationContext.Post(this.Close);
+				}, 500);
 			}
 			else
 				this.synchronizationContext.Post(this.Close);

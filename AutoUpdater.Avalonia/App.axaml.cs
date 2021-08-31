@@ -11,6 +11,7 @@ using Mono.Unix;
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace CarinaStudio.AutoUpdater
@@ -149,6 +150,7 @@ namespace CarinaStudio.AutoUpdater
 				ApplicationDirectoryPath = this.appDirectoryPath,
 				ApplicationName = this.appName,
 				PackageManifestUri = this.packageManifestUri,
+				ProcessExecutableToWaitFor = this.appExePath,
 				ProcessIdToWaitFor = this.processIdToWaitFor,
 			};
 
@@ -264,6 +266,15 @@ namespace CarinaStudio.AutoUpdater
 			{
 				this.logger.LogError("No package manifest URI specified");
 				return false;
+			}
+			if (this.appExePath != null)
+			{
+				this.appExePath = Path.DirectorySeparatorChar switch
+				{
+					'\\' => this.appExePath.Replace('/', '\\'),
+					'/' => this.appExePath.Replace('\\', '/'),
+					_ => this.appExePath,
+				};
 			}
 			return true;
 		}

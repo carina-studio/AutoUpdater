@@ -1,11 +1,13 @@
 ﻿using CarinaStudio.AutoUpdate;
 using CarinaStudio.AutoUpdate.Resolvers;
+using CarinaStudio.Collections;
 using CarinaStudio.IO;
 using CarinaStudio.Net;
 using CarinaStudio.Threading;
 using CarinaStudio.ViewModels;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -20,6 +22,7 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 	{
 		// Fields.
 		Uri? packageManifestUri;
+		string? processExecutableToWaitFor;
 		int? processIdToWaitFor;
 		CancellationTokenSource? processWaitingCancellationTokenSource;
 		readonly ScheduledAction updateMessageAction;
@@ -119,6 +122,23 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 
 
 		/// <summary>
+		/// Get or set executable of process to wait for before updating.
+		/// </summary>
+		public string? ProcessExecutableToWaitFor
+		{
+			get => this.processExecutableToWaitFor;
+			set
+			{
+				this.VerifyAccess();
+				this.VerifyDisposed();
+				if (this.IsUpdating || this.IsUpdatingCompleted)
+					throw new InvalidOperationException();
+				this.processExecutableToWaitFor = value;
+			}
+		}
+
+
+		/// <summary>
 		/// Get or set ID of process to wait for before updating.
 		/// </summary>
 		public int? ProcessIdToWaitFor
@@ -201,53 +221,98 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 			// check state
 			this.VerifyAccess();
 			this.VerifyDisposed();
-			if (this.processIdToWaitFor == null)
+			if (this.processIdToWaitFor == null && string.IsNullOrWhiteSpace(this.processExecutableToWaitFor))
 				return;
 			if (this.IsWaitingForProcess)
 				throw new InvalidOperationException();
 
-			// find process
-			var processId = this.processIdToWaitFor.GetValueOrDefault();
-			var process = Global.Run(() =>
-			{
-				try
-				{
-					return Process.GetProcessById(processId);
-				}
-				catch(Exception ex)
-				{
-					this.Logger.LogError(ex, "Unable to get process to wait for");
-					return null;
-				}
-			});
-			if (process == null)
-			{
-				this.Logger.LogWarning($"Process {processId} not found");
-				return;
-			}
-
-			// wait for completion
+			// wait for process
 			this.IsWaitingForProcess = true;
 			this.OnPropertyChanged(nameof(IsWaitingForProcess));
 			this.updateMessageAction.Schedule();
 			try
 			{
-				using (process)
+				// find processes
+				this.processWaitingCancellationTokenSource = new CancellationTokenSource();
+				var processId = this.processIdToWaitFor.GetValueOrDefault();
+				var processExecutable = this.processExecutableToWaitFor;
+				var processes = await Task.Run(() =>
 				{
-					this.processWaitingCancellationTokenSource = new CancellationTokenSource();
-					this.Logger.LogDebug($"Start waiting for process {processId}");
-					await process.WaitForExitAsync(this.processWaitingCancellationTokenSource.Token);
-					this.Logger.LogDebug($"Complete waiting for process {processId}");
-				}
-			}
-			catch (Exception ex)
-			{
-				if (ex is TaskCanceledException)
+					// get by PID
+					var processes = new Dictionary<int, Process>();
+					if (processId != 0)
+					{
+						try
+						{
+							Process.GetProcessById(processId).Let(it =>
+							{
+								processes[it.Id] = it;
+							});
+						}
+						catch (Exception ex)
+						{
+							this.Logger.LogError(ex, $"Unable to get process {processId} to wait for");
+						}
+					}
+
+					// get by executable
+					if (!string.IsNullOrWhiteSpace(processExecutable))
+					{
+						try
+						{
+							var comparer = PathEqualityComparer.Default;
+							foreach (var process in Process.GetProcesses())
+							{
+								try
+								{
+									if (comparer.Equals(processExecutable, process.MainModule?.FileName))
+									{
+										processes[process.Id] = process;
+										break;
+									}
+								}
+								catch
+								{ }
+							}
+						}
+						catch (Exception ex)
+						{
+							this.Logger.LogError(ex, $"Unable to get process '{processExecutable}' to wait for");
+						}
+					}
+					return processes;
+				});
+				if (this.processWaitingCancellationTokenSource.IsCancellationRequested)
+					throw new TaskCanceledException();
+				if (processes.IsEmpty())
 				{
-					this.Logger.LogWarning($"Waiting for process {processId} has been cancelled");
-					throw;
+					this.Logger.LogWarning($"No process to wait for");
+					return;
 				}
-				this.Logger.LogError(ex, $"Error occurred while waiting for process {processId}");
+
+				// wait for completion
+				this.Logger.LogDebug($"Start waiting for {processes.Count} process(es)");
+				foreach (var process in processes.Values)
+				{
+					try
+					{
+						using (process)
+						{
+							this.Logger.LogDebug($"Start waiting for process {processId}");
+							await process.WaitForExitAsync(this.processWaitingCancellationTokenSource.Token);
+							this.Logger.LogDebug($"Complete waiting for process {processId}");
+						}
+					}
+					catch (Exception ex)
+					{
+						if (ex is TaskCanceledException)
+						{
+							this.Logger.LogWarning($"Waiting for process {processId} has been cancelled");
+							throw;
+						}
+						this.Logger.LogError(ex, $"Error occurred while waiting for process {processId}");
+					}
+				}
 			}
 			finally
 			{
