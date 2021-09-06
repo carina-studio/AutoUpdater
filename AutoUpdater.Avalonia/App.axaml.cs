@@ -27,6 +27,7 @@ namespace CarinaStudio.AutoUpdater
 
 		// Fields.
 		string? appDirectoryPath;
+		string? appExeArgs;
 		string? appExePath;
 		string? appName;
 		CultureInfo cultureInfo = CultureInfo.CurrentCulture;
@@ -92,7 +93,11 @@ namespace CarinaStudio.AutoUpdater
 					}
 
 					// start application
-					using var process = Process.Start(app.appExePath.AsNonNull());
+					using var process = Process.Start(new ProcessStartInfo()
+					{
+						Arguments = app.appExeArgs ?? "",
+						FileName = app.appExePath.AsNonNull(),
+					});
 				}
 				catch (Exception ex)
 				{
@@ -205,6 +210,18 @@ namespace CarinaStudio.AutoUpdater
 							else
 							{
 								this.logger.LogError("Duplicate application executable specified");
+								return false;
+							}
+						}
+						break;
+					case "-executable-args":
+						if (i < argCount - 1)
+						{
+							if (this.appExeArgs == null)
+								this.appExeArgs = args[++i];
+							else
+							{
+								this.logger.LogError("Duplicate arguments of executable specified");
 								return false;
 							}
 						}
