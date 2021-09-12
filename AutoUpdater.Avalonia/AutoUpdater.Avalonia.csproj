@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <AssemblyVersion>0.10.0.906</AssemblyVersion>
-    <Version>0.10.0.906</Version>
+    <AssemblyVersion>0.10.1.912</AssemblyVersion>
+    <Version>0.10.1.912</Version>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <DebugType>embedded</DebugType>
@@ -24,11 +24,11 @@
     <PackageReference Include="Avalonia" Version="0.10.7" />
     <PackageReference Include="Avalonia.Desktop" Version="0.10.7" />
     <PackageReference Include="Avalonia.Diagnostics" Version="0.10.7" />
-    <PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.7" />
-    <PackageReference Include="CarinaStudio.AppBase.Application" Version="0.24.0.831" />
-    <PackageReference Include="CarinaStudio.AppBase.Application.Avalonia" Version="0.24.0.831" />
-    <PackageReference Include="CarinaStudio.AppBase.AutoUpdate" Version="0.24.0.831" />
-    <PackageReference Include="CarinaStudio.AppBase.Core" Version="0.24.0.831" />
+    <PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.7.1" />
+    <PackageReference Include="CarinaStudio.AppBase.Application" Version="0.24.1.912" />
+    <PackageReference Include="CarinaStudio.AppBase.Application.Avalonia" Version="0.24.1.912" />
+    <PackageReference Include="CarinaStudio.AppBase.AutoUpdate" Version="0.24.1.912" />
+    <PackageReference Include="CarinaStudio.AppBase.Core" Version="0.24.1.912" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
     <PackageReference Include="Mono.Posix" Version="7.0.0-final.1.21369.2" />
    </ItemGroup>
