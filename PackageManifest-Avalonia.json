@@ -1,17 +1,17 @@
 {
 	"Name": "AutoUpdater",
-	"Version": "0.10.0.906",
-	"PageUri": "https://github.com/carina-studio/AutoUpdater/releases/tag/0.10.0.906",
+	"Version": "0.10.1.912",
+	"PageUri": "https://github.com/carina-studio/AutoUpdater/releases/tag/0.10.1.912",
 	"Packages": [
 		{
 			"Architecture": "X64",
 			"OperatingSystem": "Windows",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.10.0.906/AutoUpdater.Avalonia-0.10.0.906-win-x64.zip"
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.10.1.912/AutoUpdater.Avalonia-0.10.1.912-win-x64.zip"
 		},
 		{
 			"Architecture": "X64",
 			"OperatingSystem": "Linux",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.10.0.906/AutoUpdater.Avalonia-0.10.0.906-linux-x64.zip"
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.10.1.912/AutoUpdater.Avalonia-0.10.1.912-linux-x64.zip"
 		}
 	]
 }
