@@ -20,6 +20,7 @@
 	<sys:String x:Key="String.UpdatingSession.UpdatingCancelled">升級已經取消。</sys:String>
 	<sys:String x:Key="String.UpdatingSession.UpdatingFailed">無法成功升級 {0}。</sys:String>
 	<sys:String x:Key="String.UpdatingSession.UpdatingSucceeded">{0} 升級完成。</sys:String>
+	<sys:String x:Key="String.UpdatingSession.VerifyingPackage">正在驗證升級封裝…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.WaitingForProcess">正在等待關閉 {0}…</sys:String>
     
 </ResourceDictionary>

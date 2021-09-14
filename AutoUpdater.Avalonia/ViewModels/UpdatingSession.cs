@@ -204,6 +204,9 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 					case UpdaterState.RestoringApplication:
 						this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.RestoringApplication", appName));
 						break;
+					case UpdaterState.VerifyingPackage:
+						this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.VerifyingPackage"));
+						break;
 					default:
 						this.SetValue(MessageProperty, null);
 						break;
