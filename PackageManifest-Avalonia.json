@@ -1,19 +1,19 @@
 {
 	"Name": "AutoUpdater",
-	"Version": "0.11.0.914",
-	"PageUri": "https://github.com/carina-studio/AutoUpdater/releases/tag/0.11.0.914",
+	"Version": "0.12.0.1026",
+	"PageUri": "https://github.com/carina-studio/AutoUpdater/releases/tag/0.12.0.1026",
 	"Packages": [
 		{
 			"Architecture": "X64",
 			"OperatingSystem": "Windows",
-			"SHA256": "14B63BB6A2833D9AD5E701EDB07D6B4D361AE8EB883F071F0F411F065AFA55F9",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.11.0.914/AutoUpdater.Avalonia-0.11.0.914-win-x64.zip"
+			"SHA256": "55BD48C167E628F569F50D0A9813C5F0F8287086CB0328A6E2020B5F74BB8627",
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.12.0.1026/AutoUpdater.Avalonia-0.12.0.1026-win-x64.zip"
 		},
 		{
 			"Architecture": "X64",
 			"OperatingSystem": "Linux",
-			"SHA256": "89BD6073B095AC7774158BFB337CDB9EFBAD551EF668E11A5F74661B09EA08EF",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.11.0.914/AutoUpdater.Avalonia-0.11.0.914-linux-x64.zip"
+			"SHA256": "DFF62634332CB7A1586B9BAC59D95E2CB31B49B07A644A1B5AA57850A0CBD4F1",
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.12.0.1026/AutoUpdater.Avalonia-0.12.0.1026-linux-x64.zip"
 		}
 	]
 }
