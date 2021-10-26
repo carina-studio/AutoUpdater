@@ -5,14 +5,18 @@ using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Media;
 using Avalonia.Themes.Fluent;
 using CarinaStudio.AutoUpdater.ViewModels;
+using CarinaStudio.Collections;
 using CarinaStudio.Configuration;
 using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using Mono.Unix;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
 
 namespace CarinaStudio.AutoUpdater
@@ -24,6 +28,10 @@ namespace CarinaStudio.AutoUpdater
 	{
 		// Constants.
 		const int EXIT_CODE_INVALID_ARGUMENT = 1;
+
+
+		// Static fields.
+		static readonly Regex X11MonitorLineRegex = new Regex("^[\\s]*[\\d]+[\\s]*\\:[\\s]*\\+\\*(?<Name>[^\\s]+)");
 
 
 		// Fields.
@@ -48,7 +56,59 @@ namespace CarinaStudio.AutoUpdater
 			this.logger = this.LoggerFactory.CreateLogger("App");
 		}
 
-		
+
+		// Apply given screen scale factor for Linux.
+		static void ApplyScreenScaleFactor(double factor)
+		{
+			// check state
+			if (!Platform.IsLinux || !double.IsFinite(factor) || factor < 1)
+				return;
+			if (Math.Abs(factor - 1) < 0.01)
+				return;
+
+			// get all screens
+			var screenNames = new List<string>();
+			try
+			{
+				using var process = Process.Start(new ProcessStartInfo()
+				{
+					Arguments = "--listactivemonitors",
+					CreateNoWindow = true,
+					FileName = "xrandr",
+					RedirectStandardOutput = true,
+					UseShellExecute = false,
+				});
+				if (process == null)
+					return;
+				using var reader = process.StandardOutput;
+				var line = reader.ReadLine();
+				while (line != null)
+				{
+					var match = X11MonitorLineRegex.Match(line);
+					if (match.Success)
+						screenNames.Add(match.Groups["Name"].Value);
+					line = reader.ReadLine();
+				}
+			}
+			catch
+			{ }
+			if (screenNames.IsEmpty())
+				return;
+
+			// set environment variable
+			var valueBuilder = new StringBuilder();
+			foreach (var screenName in screenNames)
+			{
+				if (valueBuilder.Length > 0)
+					valueBuilder.Append(';');
+				valueBuilder.Append(screenName);
+				valueBuilder.Append('=');
+				valueBuilder.AppendFormat("{0:F1}", factor);
+			}
+			Environment.SetEnvironmentVariable("AVALONIA_SCREEN_SCALE_FACTORS", valueBuilder.ToString());
+		}
+
+
 		// Initialize.
 		public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
@@ -62,12 +122,27 @@ namespace CarinaStudio.AutoUpdater
 		// Program entry.
 		public static void Main(string[] args)
 		{
+			// apply screen scale factor
+			if (Platform.IsLinux)
+			{
+				for (var i = 0; i < args.Length; ++i)
+				{
+					if (args[i] == "-screen-scale-factor")
+					{
+						++i;
+						if (i < args.Length && double.TryParse(args[i], out var factor))
+							ApplyScreenScaleFactor(factor);
+						break;
+					}
+				}
+			}
+
 			// start updating
 			AppBuilder.Configure<App>()
 				.UsePlatformDetect()
 				.LogToTrace().Also(it =>
 				{
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+					if (Platform.IsLinux)
 						it.With(new X11PlatformOptions());
 				}).StartWithClassicDesktopLifetime(args);
 
@@ -288,6 +363,10 @@ namespace CarinaStudio.AutoUpdater
 								return false;
 							}
 						}
+						break;
+					case "-screen-scale-factor":
+						if (i >= argCount)
+							this.logger.LogWarning("No screen scale factor specified");
 						break;
 					case "-wait-for-process":
 						if (i < argCount - 1)
