@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.MarkupExtensions;
+using Avalonia.Media;
 using Avalonia.Themes.Fluent;
 using CarinaStudio.AutoUpdater.ViewModels;
 using CarinaStudio.Configuration;
@@ -26,6 +27,7 @@ namespace CarinaStudio.AutoUpdater
 
 
 		// Fields.
+		Color? accentColor;
 		string? appDirectoryPath;
 		string? appExeArgs;
 		string? appExePath;
@@ -149,6 +151,27 @@ namespace CarinaStudio.AutoUpdater
 				Mode = this.darkMode ? FluentThemeMode.Dark : FluentThemeMode.Light
 			});
 
+			// apply accent color
+			this.accentColor?.Let(accentColor =>
+			{
+				Color GammaTransform(Color color, double gamma)
+				{
+					double r = (color.R / 255.0);
+					double g = (color.G / 255.0);
+					double b = (color.B / 255.0);
+					return Color.FromArgb(color.A, (byte)(Math.Pow(r, gamma) * 255 + 0.5), (byte)(Math.Pow(g, gamma) * 255 + 0.5), (byte)(Math.Pow(b, gamma) * 255 + 0.5));
+				}
+				var sysAccentColorDark1 = GammaTransform(accentColor, 2.8);
+				var sysAccentColorLight1 = GammaTransform(accentColor, 0.682);
+				this.Resources["SystemAccentColor"] = accentColor;
+				this.Resources["SystemAccentColorDark1"] = sysAccentColorDark1;
+				this.Resources["SystemAccentColorDark2"] = GammaTransform(accentColor, 4.56);
+				this.Resources["SystemAccentColorDark3"] = GammaTransform(accentColor, 5.365);
+				this.Resources["SystemAccentColorLight1"] = sysAccentColorLight1;
+				this.Resources["SystemAccentColorLight2"] = GammaTransform(accentColor, 0.431);
+				this.Resources["SystemAccentColorLight3"] = GammaTransform(accentColor, 0.006);
+			});
+
 			// create updating session
 			this.updatingSession = new UpdatingSession(this)
 			{
@@ -172,6 +195,17 @@ namespace CarinaStudio.AutoUpdater
 			{
 				switch (args[i])
 				{
+					case "-accent-color":
+						if (i < argCount - 1)
+						{
+							if (Color.TryParse(args[++i], out var color))
+								this.accentColor = color;
+							else
+								this.logger.LogWarning($"Invalid accent color: {args[i]}");
+						}
+						else
+							this.logger.LogWarning("No accent color specified");
+						break;
 					case "-culture":
 						if (i < argCount - 1)
 						{
