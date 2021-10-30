@@ -45,6 +45,7 @@ namespace CarinaStudio.AutoUpdater
 		readonly ILogger logger;
 		Uri? packageManifestUri;
 		int? processIdToWaitFor;
+		bool selfContainedPackageOnly;
 		UpdatingSession? updatingSession;
 
 
@@ -255,10 +256,14 @@ namespace CarinaStudio.AutoUpdater
 				PackageManifestUri = this.packageManifestUri,
 				ProcessExecutableToWaitFor = this.appExePath,
 				ProcessIdToWaitFor = this.processIdToWaitFor,
+				SelfContainedPackageOnly = this.selfContainedPackageOnly,
 			};
 
 			// show main window
-			new MainWindow() { DataContext = this.updatingSession }.Show();
+			this.SynchronizationContext.Post(() =>
+			{
+				new MainWindow() { DataContext = this.updatingSession }.Show();
+			});
 		}
 
 
@@ -367,6 +372,9 @@ namespace CarinaStudio.AutoUpdater
 					case "-screen-scale-factor":
 						if (i >= argCount)
 							this.logger.LogWarning("No screen scale factor specified");
+						break;
+					case "-self-contained-only":
+						this.selfContainedPackageOnly = true;
 						break;
 					case "-wait-for-process":
 						if (i < argCount - 1)
