@@ -20,6 +20,18 @@ IF %ERRORLEVEL% NEQ 0 (
 PowerShell -NoLogo -Command Compress-Archive -Force -Path .\AutoUpdater.Avalonia\bin\Release\net5.0\publish\win-x64\* -DestinationPath .\Packages\AutoUpdater.Avalonia-%1-win-x64.zip
 PowerShell -NoLogo -Command Get-FileHash .\Packages\AutoUpdater.Avalonia-%1-win-x64.zip > .\Packages\AutoUpdater.Avalonia-%1-win-x64.txt
 
+echo .
+echo ***** Windows (x64/Framework-Dependent) *****
+dotnet publish AutoUpdater.Avalonia -c Release -p:PublishProfile=win-x64-fx-dependent
+IF %ERRORLEVEL% NEQ 0 ( 
+   exit
+)
+
+PowerShell -NoLogo -Command Compress-Archive -Force -Path .\AutoUpdater.Avalonia\bin\Release\net5.0\publish\win-x64-fx-dependent\* -DestinationPath .\Packages\AutoUpdater.Avalonia-%1-win-x64-fx-dependent.zip
+PowerShell -NoLogo -Command Get-FileHash .\Packages\AutoUpdater.Avalonia-%1-win-x64-fx-dependent.zip > .\Packages\AutoUpdater.Avalonia-%1-win-x64-fx-dependent.txt
+
+
+echo .
 echo ***** Linux (x64) *****
 dotnet publish AutoUpdater.Avalonia -c Release -p:PublishProfile=linux-x64
 IF %ERRORLEVEL% NEQ 0 ( 
@@ -28,3 +40,13 @@ IF %ERRORLEVEL% NEQ 0 (
 
 PowerShell -NoLogo -Command Compress-Archive -Force -Path .\AutoUpdater.Avalonia\bin\Release\net5.0\publish\linux-x64\* -DestinationPath .\Packages\AutoUpdater.Avalonia-%1-linux-x64.zip
 PowerShell -NoLogo -Command Get-FileHash .\Packages\AutoUpdater.Avalonia-%1-linux-x64.zip > .\Packages\AutoUpdater.Avalonia-%1-linux-x64.txt
+
+echo .
+echo ***** Linux (x64/Framework-Dependent) *****
+dotnet publish AutoUpdater.Avalonia -c Release -p:PublishProfile=linux-x64-fx-dependent
+IF %ERRORLEVEL% NEQ 0 ( 
+   exit
+)
+
+PowerShell -NoLogo -Command Compress-Archive -Force -Path .\AutoUpdater.Avalonia\bin\Release\net5.0\publish\linux-x64-fx-dependent\* -DestinationPath .\Packages\AutoUpdater.Avalonia-%1-linux-x64-fx-dependent.zip
+PowerShell -NoLogo -Command Get-FileHash .\Packages\AutoUpdater.Avalonia-%1-linux-x64-fx-dependent.zip > .\Packages\AutoUpdater.Avalonia-%1-linux-x64-fx-dependent.txt
