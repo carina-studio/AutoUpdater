@@ -226,6 +226,7 @@ namespace CarinaStudio.AutoUpdater
 			{
 				Mode = this.darkMode ? FluentThemeMode.Dark : FluentThemeMode.Light
 			});
+			this.Resources["Brush/Window.Background"] = new SolidColorBrush(this.darkMode ? Color.Parse("#1e1e1e") : Color.Parse("#eeeeee"));
 
 			// apply accent color
 			this.accentColor?.Let(accentColor =>
