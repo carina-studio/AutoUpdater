@@ -13,6 +13,7 @@
 	<!-- UpdatingSession -->
 	<sys:String x:Key="String.UpdatingSession.BackingUpApplication">Backing-up {0}…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.DownloadingPackage">Downloading update package ({0})…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.Initializing">Preparing…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.InstallingPackage">Updating {0}…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.InstallingPackage.WithVersion">Updating {0} to {1}…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.Preparing">Preparing…</sys:String>

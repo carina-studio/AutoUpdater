@@ -35,6 +35,7 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		public UpdatingSession(IApplication app) : base(app)
 		{
 			this.updateMessageAction = new ScheduledAction(this.UpdateMessage);
+			this.updateMessageAction.Execute();
 		}
 
 
@@ -189,6 +190,9 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 								this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.DownloadingPackage", downloadSizeString));
 						}
 						break;
+					case UpdaterState.Initializing:
+						this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.Initializing"));
+						break;
 					case UpdaterState.InstallingPackage:
 						{
 							var version = this.UpdatingVersion;
@@ -208,7 +212,7 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 						this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.VerifyingPackage"));
 						break;
 					default:
-						this.SetValue(MessageProperty, null);
+						this.SetValue(MessageProperty, " ");
 						break;
 				}
 			}

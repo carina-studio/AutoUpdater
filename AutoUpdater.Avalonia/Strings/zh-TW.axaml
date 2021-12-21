@@ -13,6 +13,7 @@
 	<!-- UpdatingSession -->
 	<sys:String x:Key="String.UpdatingSession.BackingUpApplication">正在備份 {0}…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.DownloadingPackage">正在下載升級封裝 ({0})…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.Initializing">準備中…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.InstallingPackage">正在升級 {0}…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.InstallingPackage.WithVersion">正在升級 {0} 至 {1}…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.Preparing">準備中…</sys:String>
