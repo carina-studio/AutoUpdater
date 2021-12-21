@@ -3,7 +3,7 @@
     <AssemblyVersion>0.13.0.1030</AssemblyVersion>
     <Version>0.13.0.1030</Version>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <DebugType>embedded</DebugType>
     <RootNamespace>CarinaStudio.AutoUpdater</RootNamespace>
     <Nullable>enable</Nullable>
