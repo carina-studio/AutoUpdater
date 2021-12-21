@@ -11,7 +11,7 @@
 		},
 		{
 			"Architecture": "X86",
-			"FrameworkVersion": "99",
+			"FrameworkVersion": "99.99",
 			"OperatingSystem": "Windows",
 			"RuntimeVersion": "6.0.1",
 			"SHA256": "21AE4D249C194B24A3D710579CDD6F96DAA7B491807BEAAD35EA9C8E8F34EE21",
@@ -25,7 +25,7 @@
 		},
 		{
 			"Architecture": "X64",
-			"FrameworkVersion": "99",
+			"FrameworkVersion": "99.99",
 			"OperatingSystem": "Windows",
 			"RuntimeVersion": "6.0.1",
 			"SHA256": "ACD4482FA769C03AC70639E03CDED57CE0A29D42776251C5C4C14C70E5E40A8E",
@@ -39,7 +39,7 @@
 		},
 		{
 			"Architecture": "Arm64",
-			"FrameworkVersion": "99",
+			"FrameworkVersion": "99.99",
 			"OperatingSystem": "Windows",
 			"RuntimeVersion": "6.0.1",
 			"SHA256": "32CA2A505606B215A69139F47FB481CE6245AC9DF4DEBAA8A3473B535A190AE4",
@@ -53,7 +53,7 @@
 		},
 		{
 			"Architecture": "X64",
-			"FrameworkVersion": "99",
+			"FrameworkVersion": "99.99",
 			"OperatingSystem": "Linux",
 			"RuntimeVersion": "6.0.1",
 			"SHA256": "280120C79BF50AF8C0BE7AD7421A7EC80633161872F9EB03A4662E6AE4869CE7",
@@ -67,7 +67,7 @@
 		},
 		{
 			"Architecture": "Arm64",
-			"FrameworkVersion": "99",
+			"FrameworkVersion": "99.99",
 			"OperatingSystem": "Linux",
 			"RuntimeVersion": "6.0.1",
 			"SHA256": "A7ABAA2C106032455800DA72D42E07C29932678EEDE1F8270F7A163F93329109",
