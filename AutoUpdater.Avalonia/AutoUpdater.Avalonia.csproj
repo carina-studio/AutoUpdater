@@ -29,5 +29,9 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
     <PackageReference Include="Mono.Posix" Version="7.0.0-final.1.21369.2" />
    </ItemGroup>
+
+   <ItemGroup>
+     <ProjectReference Include="..\AutoUpdater\AutoUpdater.csproj" />
+   </ItemGroup>
 	
 </Project>
