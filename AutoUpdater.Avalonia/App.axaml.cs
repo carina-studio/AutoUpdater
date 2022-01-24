@@ -175,6 +175,7 @@ namespace CarinaStudio.AutoUpdater
 					{
 						Arguments = app.appExeArgs ?? "",
 						FileName = app.appExePath.AsNonNull(),
+						UseShellExecute = Platform.IsMacOS && Path.GetExtension(app.appExePath)?.ToLower() == ".app",
 					});
 				}
 				catch (Exception ex)
