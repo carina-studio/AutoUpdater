@@ -192,7 +192,9 @@ namespace CarinaStudio.AutoUpdater
 			base.OnFrameworkInitializationCompleted();
 
 			// parse arguments
-			var desktopLifetime = (IClassicDesktopStyleApplicationLifetime)this.ApplicationLifetime;
+			var desktopLifetime = (IClassicDesktopStyleApplicationLifetime?)this.ApplicationLifetime;
+			if (desktopLifetime == null)
+				return;
 			if (!this.ParseArgs(desktopLifetime.Args))
 			{
 				this.SynchronizationContext.Post(() => desktopLifetime.Shutdown(EXIT_CODE_INVALID_ARGUMENT));
