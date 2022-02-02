@@ -42,6 +42,11 @@ namespace CarinaStudio.AutoUpdater
 		string? appName;
 		CultureInfo cultureInfo = CultureInfo.CurrentCulture;
 		bool darkMode;
+#if DEBUG
+		bool isDebugMode = true;
+#else
+		bool isDebugMode;
+#endif
 		readonly ILogger logger;
 		Uri? packageManifestUri;
 		int? processIdToWaitFor;
@@ -202,6 +207,33 @@ namespace CarinaStudio.AutoUpdater
 				return;
 			}
 
+			// setup logger
+			NLog.LogManager.Configuration = new NLog.Config.LoggingConfiguration().Also(it =>
+			{
+				var fileTarget = new NLog.Targets.FileTarget("file")
+				{
+					ArchiveAboveSize = 10L << 20, // 10 MB per log file
+					ArchiveFileKind = NLog.Targets.FilePathKind.Absolute,
+					ArchiveFileName = Path.Combine(this.RootPrivateDirectoryPath, "Log", "log.txt"),
+					ArchiveNumbering = NLog.Targets.ArchiveNumberingMode.Sequence,
+					FileName = Path.Combine(this.RootPrivateDirectoryPath, "Log", "log.txt"),
+					Layout = "${longdate} ${pad:padding=-5:inner=${processid}} ${pad:padding=-4:inner=${threadid}} ${pad:padding=-5:inner=${level:uppercase=true}} ${logger:shortName=true}: ${message} ${all-event-properties} ${exception:format=tostring}",
+					MaxArchiveFiles = 10,
+				};
+				var rule = new NLog.Config.LoggingRule("logToFile").Also(rule =>
+				{
+					rule.LoggerNamePattern = "*";
+					rule.SetLoggingLevels(
+						this.isDebugMode ? NLog.LogLevel.Trace : NLog.LogLevel.Debug,
+						NLog.LogLevel.Error
+					);
+					rule.Targets.Add(fileTarget);
+				});
+				it.AddTarget(fileTarget);
+				it.LoggingRules.Add(rule);
+			});
+			NLog.LogManager.ReconfigExistingLoggers();
+
 			// load strings
 			if (this.CultureInfo.Name != "en-US")
 			{
@@ -307,6 +339,9 @@ namespace CarinaStudio.AutoUpdater
 						break;
 					case "-dark-mode":
 						this.darkMode = true;
+						break;
+					case "-debug-mode":
+						this.isDebugMode = true;
 						break;
 					case "-directory":
 						if (i < argCount - 1)
@@ -431,7 +466,7 @@ namespace CarinaStudio.AutoUpdater
 			return defaultValue;
 		}
 		public override bool IsShutdownStarted { get; }
-		public override ILoggerFactory LoggerFactory { get; } = new LoggerFactory();
+		public override ILoggerFactory LoggerFactory { get; } = new LoggerFactory(new ILoggerProvider[] { new NLog.Extensions.Logging.NLogLoggerProvider() });
 		public override ISettings PersistentState { get; } = new MemorySettings();
 		public override ISettings Settings { get; } = new MemorySettings();
 	}
