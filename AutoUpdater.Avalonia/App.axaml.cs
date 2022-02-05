@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.MarkupExtensions;
@@ -262,6 +263,88 @@ namespace CarinaStudio.AutoUpdater
 				Mode = this.darkMode ? FluentThemeMode.Dark : FluentThemeMode.Light
 			});
 			this.Resources["Brush/Window.Background"] = new SolidColorBrush(this.darkMode ? Color.Parse("#1e1e1e") : Color.Parse("#eeeeee"));
+			if (this.darkMode)
+            {
+				var borderBrush = new LinearGradientBrush().Also(it =>
+				{
+					it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
+					it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
+					it.GradientStops.Add(new GradientStop(Color.Parse("#20ffffff"), 0));
+					it.GradientStops.Add(new GradientStop(Color.Parse("#10ffffff"), 1));
+				});
+				var borderBrushPressed = new LinearGradientBrush().Also(it =>
+				{
+					it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
+					it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
+					it.GradientStops.Add(new GradientStop(Color.Parse("#10ffffff"), 0));
+					it.GradientStops.Add(new GradientStop(Color.Parse("#20ffffff"), 1));
+				});
+				this.Resources["ButtonBackground"] = new SolidColorBrush().Also(it =>
+				{
+					it.Bind(SolidColorBrush.ColorProperty, this.GetResourceObservable("SystemBaseLowColor"));
+					it.Opacity = 0.7;
+				});
+				this.Resources["ButtonBackgroundDisabled"] = new SolidColorBrush().Also(it =>
+				{
+					it.Bind(SolidColorBrush.ColorProperty, this.GetResourceObservable("SystemBaseLowColor"));
+					it.Opacity = 0.3;
+				});
+				this.Resources["ButtonBackgroundPointerOver"] = new SolidColorBrush().Also(it =>
+				{
+					it.Bind(SolidColorBrush.ColorProperty, this.GetResourceObservable("SystemBaseHighColor"));
+					it.Opacity = 0.3;
+				});
+				this.Resources["ButtonBackgroundPressed"] = new SolidColorBrush().Also(it =>
+				{
+					it.Bind(SolidColorBrush.ColorProperty, this.GetResourceObservable("SystemBaseLowColor"));
+					it.Opacity = 0.5;
+				});
+				this.Resources["ButtonBorderBrush"] = borderBrush;
+				this.Resources["ButtonBorderBrushDisabled"] = borderBrush;
+				this.Resources["ButtonBorderBrushPointerOver"] = borderBrush;
+				this.Resources["ButtonBorderBrushPressed"] = borderBrushPressed;
+			}
+			else
+            {
+				var borderBrush = new LinearGradientBrush().Also(it =>
+				{
+					it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
+					it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
+					it.GradientStops.Add(new GradientStop(Color.Parse("#10000000"), 0));
+					it.GradientStops.Add(new GradientStop(Color.Parse("#20000000"), 1));
+				});
+				var borderBrushPressed = new LinearGradientBrush().Also(it =>
+				{
+					it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
+					it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
+					it.GradientStops.Add(new GradientStop(Color.Parse("#20000000"), 0));
+					it.GradientStops.Add(new GradientStop(Color.Parse("#10000000"), 1));
+				});
+				this.Resources["ButtonBackground"] = new SolidColorBrush().Also(it =>
+				{
+					it.Bind(SolidColorBrush.ColorProperty, this.GetResourceObservable("SystemBaseLowColor"));
+					it.Opacity = 0.5;
+				});
+				this.Resources["ButtonBackgroundDisabled"] = new SolidColorBrush().Also(it =>
+				{
+					it.Bind(SolidColorBrush.ColorProperty, this.GetResourceObservable("SystemBaseLowColor"));
+					it.Opacity = 0.3;
+				});
+				this.Resources["ButtonBackgroundPointerOver"] = new SolidColorBrush().Also(it =>
+				{
+					it.Bind(SolidColorBrush.ColorProperty, this.GetResourceObservable("SystemBaseHighColor"));
+					it.Opacity = 0.2;
+				});
+				this.Resources["ButtonBackgroundPressed"] = new SolidColorBrush().Also(it =>
+				{
+					it.Bind(SolidColorBrush.ColorProperty, this.GetResourceObservable("SystemBaseLowColor"));
+					it.Opacity = 0.8;
+				});
+				this.Resources["ButtonBorderBrush"] = borderBrush;
+				this.Resources["ButtonBorderBrushDisabled"] = borderBrush;
+				this.Resources["ButtonBorderBrushPointerOver"] = borderBrush;
+				this.Resources["ButtonBorderBrushPressed"] = borderBrushPressed;
+			}
 
 			// apply accent color
 			this.accentColor?.Let(accentColor =>
