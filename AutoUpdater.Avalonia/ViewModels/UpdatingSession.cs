@@ -268,18 +268,21 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 						try
 						{
 							var comparer = PathEqualityComparer.Default;
+							var exeFileName = Path.GetFileNameWithoutExtension(processExecutable);
 							foreach (var process in Process.GetProcesses())
 							{
 								try
 								{
-									if (comparer.Equals(processExecutable, process.MainModule?.FileName))
+									if ((!Platform.IsWindows || comparer.Equals(exeFileName, process.ProcessName))
+										&& comparer.Equals(processExecutable, process.MainModule?.FileName))
 									{
 										processes[process.Id] = process;
-										break;
 									}
 								}
 								catch
 								{ }
+								if (this.processWaitingCancellationTokenSource.IsCancellationRequested)
+									break;
 							}
 						}
 						catch (Exception ex)
