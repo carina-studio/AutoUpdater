@@ -1,89 +1,89 @@
 {
 	"Name": "AutoUpdater",
-	"Version": "0.13.5.205",
-	"PageUri": "https://github.com/carina-studio/AutoUpdater/releases/tag/0.13.5.205",
+	"Version": "0.13.6.206",
+	"PageUri": "https://github.com/carina-studio/AutoUpdater/releases/tag/0.13.6.206",
 	"Packages": [
 		{
 			"Architecture": "X86",
 			"OperatingSystem": "Windows",
-			"SHA256": "C595ABF0DFE522BA8AF516BF383EC1C678A447ED33CE130E1272349C7D71035B",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.5.205/AutoUpdater.Avalonia-0.13.5.205-win-x86.zip"
+			"SHA256": "2A451D22130768090EB8C5DB49DE7D1CEBCDA9F00BA9F284AB33E376DAA2B5FD",
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.6.206/AutoUpdater.Avalonia-0.13.6.206-win-x86.zip"
 		},
 		{
 			"Architecture": "X86",
 			"FrameworkVersion": "99.99",
 			"OperatingSystem": "Windows",
 			"RuntimeVersion": "6.0.1",
-			"SHA256": "D7AB7A2E61C08795A84263F648D2D410DBA7508CAA72C8469488E0621030287A",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.5.205/AutoUpdater.Avalonia-0.13.5.205-win-x86-fx-dependent.zip"
+			"SHA256": "977AA7E2D129D1A63D0200743D37570988CD754B87EDC4E769117EEA824D125A",
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.6.206/AutoUpdater.Avalonia-0.13.6.206-win-x86-fx-dependent.zip"
 		},
 		{
 			"Architecture": "X64",
 			"OperatingSystem": "Windows",
-			"SHA256": "6CE50BA58670F459A8DCE209D40AC564D9710DB0754ADB9DD79231891CCBB973",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.5.205/AutoUpdater.Avalonia-0.13.5.205-win-x64.zip"
+			"SHA256": "456BA35AA557BCB0BE482251C89ED2CFA0CC3F805D87FA24BC0727AAD249C31A",
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.6.206/AutoUpdater.Avalonia-0.13.6.206-win-x64.zip"
 		},
 		{
 			"Architecture": "X64",
 			"FrameworkVersion": "99.99",
 			"OperatingSystem": "Windows",
 			"RuntimeVersion": "6.0.1",
-			"SHA256": "32BC4343F99310C9C746D1566FDF7677671988878739D1D7B43828C0740FC748",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.5.205/AutoUpdater.Avalonia-0.13.5.205-win-x64-fx-dependent.zip"
+			"SHA256": "A5C6B5B158E53B9BFF6DA8F62878D1737C5D2A0CA18DD53C0A5B050B16AAB4E2",
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.6.206/AutoUpdater.Avalonia-0.13.6.206-win-x64-fx-dependent.zip"
 		},
 		{
 			"Architecture": "Arm64",
 			"OperatingSystem": "Windows",
-			"SHA256": "D6D1D25AB8E1C3B87D1041B97666016DD9C898AD5E9264F1663EC1E9E30D5AA3",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.5.205/AutoUpdater.Avalonia-0.13.5.205-win-arm64.zip"
+			"SHA256": "CBE84CE55DCFDACEE0BA9C450501B337A22D5867FF074D17CC8DBD96444B5536",
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.6.206/AutoUpdater.Avalonia-0.13.6.206-win-arm64.zip"
 		},
 		{
 			"Architecture": "Arm64",
 			"FrameworkVersion": "99.99",
 			"OperatingSystem": "Windows",
 			"RuntimeVersion": "6.0.1",
-			"SHA256": "FE7FD560AB634216C5BFF0D4B919501842FC54478A4B42197D092E961D418CD3",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.5.205/AutoUpdater.Avalonia-0.13.5.205-win-arm64-fx-dependent.zip"
+			"SHA256": "31C87AC76D180C5F47DC8288F428440FFC1A23FAFE54409B873534D00621723A",
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.6.206/AutoUpdater.Avalonia-0.13.6.206-win-arm64-fx-dependent.zip"
 		},
 		{
 			"Architecture": "X64",
 			"OperatingSystem": "Linux",
-			"SHA256": "F4D0AE680795C774CEB638715655C9DF0806258C496A209A1E9F30C67E75A059",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.5.205/AutoUpdater.Avalonia-0.13.5.205-linux-x64.zip"
+			"SHA256": "930A68267E5477868223F5C32B03FA1B65048F791E976FB00C04E30566F43C91",
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.6.206/AutoUpdater.Avalonia-0.13.6.206-linux-x64.zip"
 		},
 		{
 			"Architecture": "X64",
 			"FrameworkVersion": "99.99",
 			"OperatingSystem": "Linux",
 			"RuntimeVersion": "6.0.1",
-			"SHA256": "6573893903EFC465C39860CD098E6B265C4A4EC9F6FD12A4B024D37F3584D7D2",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.5.205/AutoUpdater.Avalonia-0.13.5.205-linux-x64-fx-dependent.zip"
+			"SHA256": "FA70194E0AEAF3E585FFD0DA18D469F035A52641EDF3101F00AAB776F3D87F01",
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.6.206/AutoUpdater.Avalonia-0.13.6.206-linux-x64-fx-dependent.zip"
 		},
 		{
 			"Architecture": "Arm64",
 			"OperatingSystem": "Linux",
-			"SHA256": "44DAB86CB1B241CCA07F451A6EE315C591E5D4393AA555FA88A07F2E2EB2640A",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.5.205/AutoUpdater.Avalonia-0.13.5.205-linux-arm64.zip"
+			"SHA256": "B5AC991ACADBE7E754BAFC1315D4D0EDC4A517A22A7276C3ECEE8EA0F328DC3F",
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.6.206/AutoUpdater.Avalonia-0.13.6.206-linux-arm64.zip"
 		},
 		{
 			"Architecture": "Arm64",
 			"FrameworkVersion": "99.99",
 			"OperatingSystem": "Linux",
 			"RuntimeVersion": "6.0.1",
-			"SHA256": "5D8A00926BEA5A0C8C849FE959F2DB5357ECD4D52557CE5AFEC12918420C7273",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.5.205/AutoUpdater.Avalonia-0.13.5.205-linux-arm64-fx-dependent.zip"
+			"SHA256": "03E3BE786345EB8D576994C882965DA0FAE8D2A3ACB9ECCAA1878907466A8C26",
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.6.206/AutoUpdater.Avalonia-0.13.6.206-linux-arm64-fx-dependent.zip"
 		},
 		{
 			"Architecture": "X64",
 			"OperatingSystem": "OSX",
-			"SHA256": "20F0ED832EC322EA1C0B0BBC633A2BA031F391941CCC42AB29F75B04A049370F",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.5.205/AutoUpdater.Avalonia-0.13.5.205-osx-x64.zip"
+			"SHA256": "7DE25492AC94DA7181063C5E4C314812408D2541652796969E9FED704DF1B588",
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.6.206/AutoUpdater.Avalonia-0.13.6.206-osx-x64.zip"
 		},
 		{
 			"Architecture": "Arm64",
 			"OperatingSystem": "OSX",
-			"SHA256": "3DB7AF3340780A3192B39B47A1046FB5AB08EDCA73998E1646AAD1CE572761A9",
-			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.5.205/AutoUpdater.Avalonia-0.13.5.205-osx-arm64.zip"
+			"SHA256": "22539047C8518061A08DB59020310682BB2675E2989548FFC699AAAEBB1A6A71",
+			"Uri": "https://github.com/carina-studio/AutoUpdater/releases/download/0.13.6.206/AutoUpdater.Avalonia-0.13.6.206-osx-arm64.zip"
 		}
 	]
 }
