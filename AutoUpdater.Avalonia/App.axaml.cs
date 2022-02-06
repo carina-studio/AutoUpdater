@@ -262,43 +262,27 @@ namespace CarinaStudio.AutoUpdater
 			{
 				Mode = this.darkMode ? FluentThemeMode.Dark : FluentThemeMode.Light
 			});
-			this.Resources["Brush/Window.Background"] = new SolidColorBrush(this.darkMode ? Color.Parse("#1e1e1e") : Color.Parse("#eeeeee"));
+			this.Resources["Brush/Window.Background"] = new SolidColorBrush(this.darkMode ? Color.Parse("#1e1e1e") : Color.Parse("#f0f0f0"));
 			if (this.darkMode)
             {
 				var borderBrush = new LinearGradientBrush().Also(it =>
 				{
 					it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
 					it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
-					it.GradientStops.Add(new GradientStop(Color.Parse("#20ffffff"), 0));
-					it.GradientStops.Add(new GradientStop(Color.Parse("#10ffffff"), 1));
+					it.GradientStops.Add(new GradientStop(Color.Parse("#22ffffff"), 0));
+					it.GradientStops.Add(new GradientStop(Color.Parse("#11ffffff"), 1));
 				});
 				var borderBrushPressed = new LinearGradientBrush().Also(it =>
 				{
 					it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
 					it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
-					it.GradientStops.Add(new GradientStop(Color.Parse("#10ffffff"), 0));
-					it.GradientStops.Add(new GradientStop(Color.Parse("#20ffffff"), 1));
+					it.GradientStops.Add(new GradientStop(Color.Parse("#11ffffff"), 0));
+					it.GradientStops.Add(new GradientStop(Color.Parse("#22ffffff"), 1));
 				});
-				this.Resources["ButtonBackground"] = new SolidColorBrush().Also(it =>
-				{
-					it.Bind(SolidColorBrush.ColorProperty, this.GetResourceObservable("SystemBaseLowColor"));
-					it.Opacity = 0.7;
-				});
-				this.Resources["ButtonBackgroundDisabled"] = new SolidColorBrush().Also(it =>
-				{
-					it.Bind(SolidColorBrush.ColorProperty, this.GetResourceObservable("SystemBaseLowColor"));
-					it.Opacity = 0.3;
-				});
-				this.Resources["ButtonBackgroundPointerOver"] = new SolidColorBrush().Also(it =>
-				{
-					it.Bind(SolidColorBrush.ColorProperty, this.GetResourceObservable("SystemBaseHighColor"));
-					it.Opacity = 0.3;
-				});
-				this.Resources["ButtonBackgroundPressed"] = new SolidColorBrush().Also(it =>
-				{
-					it.Bind(SolidColorBrush.ColorProperty, this.GetResourceObservable("SystemBaseLowColor"));
-					it.Opacity = 0.5;
-				});
+				this.Resources["ButtonBackground"] = new SolidColorBrush(Color.Parse("#2d2d2d"));
+				this.Resources["ButtonBackgroundDisabled"] = new SolidColorBrush(Color.Parse("#373737"));
+				this.Resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(Color.Parse("#404040"));
+				this.Resources["ButtonBackgroundPressed"] = new SolidColorBrush(Color.Parse("#202020"));
 				this.Resources["ButtonBorderBrush"] = borderBrush;
 				this.Resources["ButtonBorderBrushDisabled"] = borderBrush;
 				this.Resources["ButtonBorderBrushPointerOver"] = borderBrush;
@@ -310,36 +294,20 @@ namespace CarinaStudio.AutoUpdater
 				{
 					it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
 					it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
-					it.GradientStops.Add(new GradientStop(Color.Parse("#10000000"), 0));
-					it.GradientStops.Add(new GradientStop(Color.Parse("#20000000"), 1));
+					it.GradientStops.Add(new GradientStop(Color.Parse("#20000000"), 0));
+					it.GradientStops.Add(new GradientStop(Color.Parse("#50000000"), 1));
 				});
 				var borderBrushPressed = new LinearGradientBrush().Also(it =>
 				{
 					it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
 					it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
-					it.GradientStops.Add(new GradientStop(Color.Parse("#20000000"), 0));
-					it.GradientStops.Add(new GradientStop(Color.Parse("#10000000"), 1));
+					it.GradientStops.Add(new GradientStop(Color.Parse("#50000000"), 0));
+					it.GradientStops.Add(new GradientStop(Color.Parse("#20000000"), 1));
 				});
-				this.Resources["ButtonBackground"] = new SolidColorBrush().Also(it =>
-				{
-					it.Bind(SolidColorBrush.ColorProperty, this.GetResourceObservable("SystemBaseLowColor"));
-					it.Opacity = 0.5;
-				});
-				this.Resources["ButtonBackgroundDisabled"] = new SolidColorBrush().Also(it =>
-				{
-					it.Bind(SolidColorBrush.ColorProperty, this.GetResourceObservable("SystemBaseLowColor"));
-					it.Opacity = 0.3;
-				});
-				this.Resources["ButtonBackgroundPointerOver"] = new SolidColorBrush().Also(it =>
-				{
-					it.Bind(SolidColorBrush.ColorProperty, this.GetResourceObservable("SystemBaseHighColor"));
-					it.Opacity = 0.2;
-				});
-				this.Resources["ButtonBackgroundPressed"] = new SolidColorBrush().Also(it =>
-				{
-					it.Bind(SolidColorBrush.ColorProperty, this.GetResourceObservable("SystemBaseLowColor"));
-					it.Opacity = 0.8;
-				});
+				this.Resources["ButtonBackground"] = new SolidColorBrush(Color.Parse("#fbfbfb"));
+				this.Resources["ButtonBackgroundDisabled"] = new SolidColorBrush(Color.Parse("#e7e7e7"));
+				this.Resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(Color.Parse("#f0f0f0"));
+				this.Resources["ButtonBackgroundPressed"] = new SolidColorBrush(Color.Parse("#e0e0e0"));
 				this.Resources["ButtonBorderBrush"] = borderBrush;
 				this.Resources["ButtonBorderBrushDisabled"] = borderBrush;
 				this.Resources["ButtonBorderBrushPointerOver"] = borderBrush;

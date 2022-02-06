@@ -17,6 +17,7 @@
 	<!-- Styles -->
 	<Window.Styles>
 		<Style Selector="Button.ControlButton">
+			<Setter Property="CornerRadius" Value="4"/>
 			<Setter Property="HorizontalAlignment" Value="Center"/>
 			<Setter Property="HorizontalContentAlignment" Value="Center"/>
 			<Setter Property="Margin" Value="0,15,0,0"/>

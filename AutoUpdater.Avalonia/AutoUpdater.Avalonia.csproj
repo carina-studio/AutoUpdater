@@ -16,16 +16,16 @@
   </PropertyGroup>
 
   <PropertyGroup>
-		<CFBundleName>AutoUpdater</CFBundleName>
-		<CFBundleExecutable>AutoUpdater.Avalonia</CFBundleExecutable>
-		<CFBundleIdentifier>com.carina-studio.autoupdater</CFBundleIdentifier>
-		<CFBundleShortVersionString>$(Version)</CFBundleShortVersionString>
-		<CFBundleIconFile>AutoUpdater.Avalonia.icns</CFBundleIconFile>
-		<CFBundlePackageType>APPL</CFBundlePackageType>
-		<NSPrincipalClass>NSApplication</NSPrincipalClass>
+    <CFBundleName>AutoUpdater</CFBundleName>
+    <CFBundleExecutable>AutoUpdater.Avalonia</CFBundleExecutable>
+    <CFBundleIdentifier>com.carina-studio.autoupdater</CFBundleIdentifier>
+    <CFBundleShortVersionString>$(Version)</CFBundleShortVersionString>
+    <CFBundleIconFile>AutoUpdater.Avalonia.icns</CFBundleIconFile>
+    <CFBundlePackageType>APPL</CFBundlePackageType>
+    <NSPrincipalClass>NSApplication</NSPrincipalClass>
     <NSHighResolutionCapable>True</NSHighResolutionCapable>
-		<NSHumanReadableCopyright>©2022 Carina Studio</NSHumanReadableCopyright>
-	</PropertyGroup>
+    <NSHumanReadableCopyright>©2022 Carina Studio</NSHumanReadableCopyright>
+  </PropertyGroup>
 	
   <ItemGroup>
     <AvaloniaResource Include="AppIcon.ico" />
