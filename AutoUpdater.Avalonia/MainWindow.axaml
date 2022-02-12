@@ -8,7 +8,7 @@
         x:Class="CarinaStudio.AutoUpdater.MainWindow"
 		Background="{DynamicResource Brush/Window.Background}"
         CanResize="False"
-        Icon="AppIcon.ico"
+        Icon="AutoUpdater.Avalonia.ico"
         SizeToContent="Height"
         Title="{StaticResource String.MainWindow.Title}"
         Width="500"

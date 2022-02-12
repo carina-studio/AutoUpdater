@@ -28,7 +28,7 @@
   </PropertyGroup>
 	
   <ItemGroup>
-    <AvaloniaResource Include="AppIcon.ico" />
+    <AvaloniaResource Include="AutoUpdater.Avalonia.ico" />
     <AvaloniaResource Include="Strings/Default.axaml" />
     <AvaloniaResource Include="Strings/zh-TW.axaml" />
   </ItemGroup>
