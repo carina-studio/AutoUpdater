@@ -41,7 +41,7 @@ namespace CarinaStudio.AutoUpdater
 		string? appExeArgs;
 		string? appExePath;
 		string? appName;
-		CultureInfo cultureInfo = CultureInfo.CurrentCulture;
+		CultureInfo cultureInfo = CultureInfo.GetCultureInfo("en-US");
 		bool darkMode;
 #if DEBUG
 		bool isDebugMode = true;
@@ -60,6 +60,20 @@ namespace CarinaStudio.AutoUpdater
 		/// </summary>
 		public App()
 		{
+			this.RootPrivateDirectoryPath = Global.Run(() =>
+			{
+				var mainModule = Process.GetCurrentProcess().MainModule;
+				if (mainModule != null && Path.GetFileNameWithoutExtension(mainModule.FileName) != "dotnet")
+					return Path.GetDirectoryName(mainModule.FileName) ?? "";
+				var codeBase = System.Reflection.Assembly.GetEntryAssembly()?.GetName()?.CodeBase;
+				if (codeBase != null && codeBase.StartsWith("file://") && codeBase.Length > 7)
+				{
+					if (Platform.IsWindows)
+						return Path.GetDirectoryName(codeBase.Substring(8).Replace('/', '\\')) ?? Environment.CurrentDirectory;
+					return Path.GetDirectoryName(codeBase.Substring(7)) ?? Environment.CurrentDirectory;
+				}
+				return Environment.CurrentDirectory;
+			});
 			this.logger = this.LoggerFactory.CreateLogger("App");
 		}
 
@@ -519,6 +533,7 @@ namespace CarinaStudio.AutoUpdater
 		public override bool IsShutdownStarted { get; }
 		public override ILoggerFactory LoggerFactory { get; } = new LoggerFactory(new ILoggerProvider[] { new NLog.Extensions.Logging.NLogLoggerProvider() });
 		public override ISettings PersistentState { get; } = new MemorySettings();
+		public override string RootPrivateDirectoryPath { get; }
 		public override ISettings Settings { get; } = new MemorySettings();
 	}
 }
