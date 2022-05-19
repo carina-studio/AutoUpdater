@@ -26,11 +26,12 @@
     <NSHighResolutionCapable>True</NSHighResolutionCapable>
     <NSHumanReadableCopyright>©2022 Carina Studio</NSHumanReadableCopyright>
   </PropertyGroup>
-	
+
   <ItemGroup>
     <AvaloniaResource Include="AutoUpdater.Avalonia.ico" />
     <AvaloniaResource Include="Strings/Default.axaml" />
     <AvaloniaResource Include="Strings/zh-TW.axaml" />
+    <AvaloniaResource Include="Strings/zh-CN.axaml" />
   </ItemGroup>
 	
   <ItemGroup>
