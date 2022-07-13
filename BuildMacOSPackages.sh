@@ -29,6 +29,7 @@ for i in "${!RID_LIST[@]}"; do
     echo "[$PUB_PLATFORM ($RID)]"
     echo " "
 
+    dotnet clean $APP_NAME
     dotnet restore $APP_NAME
     if [ "$?" != "0" ]; then
         exit
