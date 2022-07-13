@@ -34,10 +34,10 @@
   </ItemGroup>
 	
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.10.12" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.10.12" />
-    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.12" />
-    <PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.12" />
+    <PackageReference Include="Avalonia" Version="0.10.16" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.16" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.16" />
+    <PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.16" />
     <PackageReference Include="CarinaStudio.AppBase.Application.Avalonia" Version="1.0.0.312" />
     <PackageReference Include="Dotnet.Bundle" Version="0.9.13" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
