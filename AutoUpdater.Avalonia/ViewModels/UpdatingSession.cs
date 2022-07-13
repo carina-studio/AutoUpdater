@@ -62,8 +62,8 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 				return base.CreatePackageResolver(source);
 			var packageManifestName = Path.GetExtension(wrStreamProvider.RequestUri.LocalPath)?.ToLower();
 			if (packageManifestName == ".xml")
-				return new XmlPackageResolver(this.Application) { Source = source };
-			return new JsonPackageResolver(this.Application) { Source = source };
+				return new XmlPackageResolver(this.Application, this.ApplicationBaseVersion) { Source = source };
+			return new JsonPackageResolver(this.Application, this.ApplicationBaseVersion) { Source = source };
 		}
 
 
