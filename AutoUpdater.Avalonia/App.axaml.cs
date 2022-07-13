@@ -37,6 +37,7 @@ namespace CarinaStudio.AutoUpdater
 
 		// Fields.
 		Color? accentColor;
+		Version? appBaseVersion;
 		string? appDirectoryPath;
 		string? appExeArgs;
 		string? appExePath;
@@ -352,6 +353,7 @@ namespace CarinaStudio.AutoUpdater
 			// create updating session
 			this.updatingSession = new UpdatingSession(this)
 			{
+				ApplicationBaseVersion = this.appBaseVersion,
 				ApplicationDirectoryPath = this.appDirectoryPath,
 				ApplicationName = this.appName,
 				PackageManifestUri = this.packageManifestUri,
@@ -386,6 +388,17 @@ namespace CarinaStudio.AutoUpdater
 						}
 						else
 							this.logger.LogWarning("No accent color specified");
+						break;
+					case "-base-version":
+						if (i < argCount - 1)
+						{
+							if (Version.TryParse(args[++i], out var version))
+								this.appBaseVersion = version;
+							else
+								this.logger.LogWarning($"Invalid base application version: {args[i]}");
+						}
+						else
+							this.logger.LogError("No base application version specified");
 						break;
 					case "-culture":
 						if (i < argCount - 1)
