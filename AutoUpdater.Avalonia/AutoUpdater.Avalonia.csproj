@@ -30,6 +30,7 @@
   <ItemGroup>
     <AvaloniaResource Include="AutoUpdater.Avalonia.ico" />
     <AvaloniaResource Include="Strings/Default.axaml" />
+    <AvaloniaResource Include="Strings/zh-CN.axaml" />
     <AvaloniaResource Include="Strings/zh-TW.axaml" />
   </ItemGroup>
 	
