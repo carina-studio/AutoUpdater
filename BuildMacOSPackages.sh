@@ -29,6 +29,7 @@ for i in "${!RID_LIST[@]}"; do
     echo "[$PUB_PLATFORM ($RID)]"
     echo " "
 
+    rm -r ./$APP_NAME/bin/$CONFIG/net6.0/$RID
     dotnet clean $APP_NAME
     dotnet restore $APP_NAME
     if [ "$?" != "0" ]; then
@@ -36,7 +37,7 @@ for i in "${!RID_LIST[@]}"; do
     fi
 
     # build
-    dotnet msbuild $APP_NAME -t:BundleApp -property:Configuration=$CONFIG -p:SelfContained=true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:RuntimeIdentifier=$RID
+    dotnet msbuild $APP_NAME -t:BundleApp -property:Configuration=$CONFIG -p:SelfContained=true -p:PublishSingleFile=false -p:PublishTrimmed=true -p:RuntimeIdentifier=$RID
     if [ "$?" != "0" ]; then
         exit
     fi
@@ -65,25 +66,23 @@ for i in "${!RID_LIST[@]}"; do
     # sign application
     find "./Packages/$PUB_PLATFORM/$APP_NAME.app/Contents/MacOS/" | while read FILE_NAME; do
         if [[ -f $FILE_NAME ]]; then
-            codesign -f -o runtime --timestamp --entitlements "./$APP_NAME/$APP_NAME.entitlements" -s "$CERT_NAME" "$FILE_NAME"
-            if [ "$?" != "0" ]; then
-                exit
+            if [[ "$FILE_NAME" != "./Packages/$PUB_PLATFORM/$APP_NAME.app/Contents/MacOS//$APP_NAME" ]]; then
+                echo "Signing $FILE_NAME"
+                codesign -f -o runtime --timestamp --entitlements "./$APP_NAME/$APP_NAME.entitlements" -s "$CERT_NAME" "$FILE_NAME"
+                if [ "$?" != "0" ]; then
+                    exit
+                fi
             fi
         fi
     done
-    codesign -f -o runtime --timestamp --entitlements "./$APP_NAME/$APP_NAME.entitlements" -s "$CERT_NAME" ./Packages/$PUB_PLATFORM/$APP_NAME.app
+    codesign -f -o runtime --timestamp --entitlements "./$APP_NAME/$APP_NAME.entitlements" -s "$CERT_NAME" "./Packages/$PUB_PLATFORM/$APP_NAME.app/Contents/MacOS/$APP_NAME"
+    codesign -f -o runtime --timestamp --entitlements "./$APP_NAME/$APP_NAME.entitlements" -s "$CERT_NAME" "./Packages/$PUB_PLATFORM/$APP_NAME.app"
     if [ "$?" != "0" ]; then
         exit
     fi
-
+    
     # zip .app directory
-    cd ./Packages/$PUB_PLATFORM
-    zip -r ./$APP_NAME-$VERSION-$PUB_PLATFORM.zip ./
-    if [ "$?" != "0" ]; then
-        cd -
-        exit
-    fi
-    cd -
+    ditto -c -k --sequesterRsrc --keepParent "./Packages/$PUB_PLATFORM/$APP_NAME.app" "./Packages/$PUB_PLATFORM/$APP_NAME-$VERSION-$PUB_PLATFORM.zip"
 
 done
 

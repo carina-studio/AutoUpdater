@@ -12,6 +12,7 @@
     <Company>Carina Studio</Company>
     <Copyright>©2021 Carina Studio</Copyright>
     <StartupObject>CarinaStudio.AutoUpdater.App</StartupObject>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <ApplicationIcon />
   </PropertyGroup>
 
