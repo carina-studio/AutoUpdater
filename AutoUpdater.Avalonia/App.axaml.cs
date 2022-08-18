@@ -251,25 +251,22 @@ namespace CarinaStudio.AutoUpdater
 			NLog.LogManager.ReconfigExistingLoggers();
 
 			// load strings
-			if (this.CultureInfo.Name != "en-US")
+			if (!this.CultureInfo.Name.StartsWith("en-"))
 			{
-				var stringResources = (ResourceInclude?)null;
 				try
 				{
-					stringResources = new ResourceInclude()
+					var stringResources = new ResourceInclude()
 					{
 						Source = new Uri($"avares://AutoUpdater.Avalonia/Strings/{this.CultureInfo.Name}.axaml")
 					};
 					_ = stringResources.Loaded; // trigger error if resource not found
 					this.logger.LogInformation($"Load strings for {this.CultureInfo.Name}");
+					this.Resources.MergedDictionaries.Add(stringResources);
 				}
 				catch
 				{
-					stringResources = null;
 					this.logger.LogWarning($"No strings for {this.CultureInfo.Name}");
-					return;
 				}
-				this.Resources.MergedDictionaries.Add(stringResources);
 			}
 
 			// load styles
