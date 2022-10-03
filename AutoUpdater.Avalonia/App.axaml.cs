@@ -1,5 +1,4 @@
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.MarkupExtensions;
@@ -534,6 +533,7 @@ namespace CarinaStudio.AutoUpdater
 
 		// Implementations.
 		public override CultureInfo CultureInfo { get => this.cultureInfo; }
+		public override IObservable<string?> GetObservableString(string key) => new FixedObservableValue<string?>(null);
 		public override string? GetString(string key, string? defaultValue = null)
 		{
 			if (this.Resources.TryGetResource($"String.{key}", out var value) && value is string str)
