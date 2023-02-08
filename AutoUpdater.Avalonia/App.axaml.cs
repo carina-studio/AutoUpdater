@@ -9,7 +9,6 @@ using CarinaStudio.Collections;
 using CarinaStudio.Configuration;
 using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
-using Mono.Unix;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -178,9 +177,9 @@ namespace CarinaStudio.AutoUpdater
 					{
 						try
 						{
-							var fileInfo = new UnixFileInfo(app.appExePath.AsNonNull());
-							if (fileInfo.Exists)
-								fileInfo.FileAccessPermissions |= (FileAccessPermissions.UserExecute | FileAccessPermissions.GroupExecute);
+							var appExePath = app.appExePath.AsNonNull();
+							if (File.Exists(appExePath))
+								File.SetUnixFileMode(appExePath, File.GetUnixFileMode(appExePath) | UnixFileMode.UserExecute | UnixFileMode.GroupExecute);
 							else
 								app.logger.LogError($"Cannot find executable '{app.appExePath}'");
 						}
