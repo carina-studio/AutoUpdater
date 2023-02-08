@@ -88,11 +88,6 @@ REM Build packages
     )
 ))
 
-REM Generate diff packages
-if [%PREVIOUS_VERSION%] neq [] (
-    dotnet run --project PackagingTool create-diff-packages linux %PREVIOUS_VERSION% %CURRENT_VERSION%
-)
-
 REM Generate package manifest
 dotnet run --project PackagingTool create-package-manifest linux %APP_NAME% %CURRENT_VERSION%
 

@@ -77,42 +77,7 @@ REM Build packages
         del /Q Packages\Packaging.txt
         exit
     )
-
-    REM Start building framework-dependent package
-    echo .
-    echo [%%r, Framework Dependent]
-    echo .
-
-    REM Clear project
-    if exist %APP_NAME%\bin\%CONFIG%\%FRAMEWORK%\%%r\publish (
-        echo Delete output directory '%APP_NAME%\bin\%CONFIG%\%FRAMEWORK%\%%r\publish'
-        del /Q %APP_NAME%\bin\%CONFIG%\%FRAMEWORK%\%%r\publish
-    )
-
-    REM Build project
-    dotnet publish %APP_NAME% -c %CONFIG% -r %%r --self-contained false
-    if %ERRORLEVEL% neq 0 (
-        echo Failed to build project: %ERRORLEVEL%
-        del /Q Packages\Packaging.txt
-        exit
-    )
-    if exist %APP_NAME%\bin\%CONFIG%\%FRAMEWORK%\%%r\publish\ULogViewer.png (
-        del /Q %APP_NAME%\bin\%CONFIG%\%FRAMEWORK%\%%r\publish\ULogViewer.png
-    )
-
-    REM Generate package
-    start /Wait PowerShell -NoLogo -Command Compress-Archive -Force -Path %APP_NAME%\bin\%CONFIG%\%FRAMEWORK%\%%r\publish\* -DestinationPath Packages\%CURRENT_VERSION%\%APP_NAME%-%CURRENT_VERSION%-%%r-fx-dependent.zip
-    if %ERRORLEVEL% neq 0 (
-        echo Failed to generate package: %ERRORLEVEL%
-        del /Q Packages\Packaging.txt
-        exit
-    )
 ))
-
-REM Generate diff packages
-if [%PREVIOUS_VERSION%] neq [] (
-    dotnet run --project PackagingTool create-diff-packages win %PREVIOUS_VERSION% %CURRENT_VERSION%
-)
 
 REM Generate package manifest
 dotnet run --project PackagingTool create-package-manifest win %APP_NAME% %CURRENT_VERSION%
