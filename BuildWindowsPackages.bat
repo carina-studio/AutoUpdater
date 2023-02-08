@@ -3,7 +3,10 @@
 set APP_NAME=AutoUpdater.Avalonia
 set RID_LIST=win-arm64 win-x64 win-x86
 set CONFIG=Release
-set FRAMEWORK=net6.0
+set FRAMEWORK=net7.0
+set SELF_CONTAINED=true
+set TRIM_ASSEMBLIES=true
+set READY_TO_RUN=false
 set ERRORLEVEL=0
 
 echo ********** Start building %APP_NAME% **********
@@ -53,11 +56,11 @@ REM Build packages
     REM Clear project
     if exist %APP_NAME%\bin\%CONFIG%\%FRAMEWORK%\%%r\publish (
         echo Delete output directory '%APP_NAME%\bin\%CONFIG%\%FRAMEWORK%\%%r\publish'
-        del /Q %APP_NAME%\bin\%CONFIG%\%FRAMEWORK%\%%r\publish
+        rmdir %APP_NAME%\bin\%CONFIG%\%FRAMEWORK%\%%r\publish /s /q
     )
 
     REM Build project
-    dotnet publish %APP_NAME% -c %CONFIG% -r %%r --self-contained true -p:PublishTrimmed=true
+    dotnet publish %APP_NAME% -c %CONFIG% -r %%r --self-contained %SELF_CONTAINED% -p:PublishTrimmed=%TRIM_ASSEMBLIES% -p:PublishReadyToRun=%READY_TO_RUN%
     if %ERRORLEVEL% neq 0 (
         echo Failed to build project: %ERRORLEVEL%
         del /Q Packages\Packaging.txt
