@@ -78,16 +78,16 @@ namespace CarinaStudio.AutoUpdater
 
 
 		// Called when property changed.
-		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+		protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 		{
 			base.OnPropertyChanged(change);
 			if (change.Property == DataContextProperty)
 			{
-				(change.OldValue.Value as ViewModels.UpdatingSession)?.Let(it =>
+				(change.OldValue as ViewModels.UpdatingSession)?.Let(it =>
 				{
 					it.PropertyChanged -= this.OnSessionPropertyChanged;
 				});
-				(change.NewValue.Value as ViewModels.UpdatingSession)?.Let(it =>
+				(change.NewValue as ViewModels.UpdatingSession)?.Let(it =>
 				{
 					it.PropertyChanged += this.OnSessionPropertyChanged;
 				});
