@@ -8,12 +8,13 @@
     <DebugType>embedded</DebugType>
     <RootNamespace>CarinaStudio.AutoUpdater</RootNamespace>
     <Nullable>enable</Nullable>
+    <TrimMode>partial</TrimMode>
     <Authors>Carina Studio</Authors>
     <Company>Carina Studio</Company>
     <Copyright>©2021 Carina Studio</Copyright>
     <StartupObject>CarinaStudio.AutoUpdater.App</StartupObject>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-    <ApplicationIcon />
+    <ApplicationIcon/>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -27,29 +28,35 @@
     <NSHighResolutionCapable>True</NSHighResolutionCapable>
     <NSHumanReadableCopyright>©2022 Carina Studio</NSHumanReadableCopyright>
   </PropertyGroup>
-	
-  <ItemGroup>
-    <AvaloniaResource Include="AutoUpdater.Avalonia.ico" />
-    <AvaloniaResource Include="Strings/Default.axaml" />
-    <AvaloniaResource Include="Strings/zh-CN.axaml" />
-    <AvaloniaResource Include="Strings/zh-TW.axaml" />
-  </ItemGroup>
-	
-  <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.0.0-preview4" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.0-preview4" />
-    <PackageReference Include="Avalonia.Diagnostics" Version="11.0.0-preview4" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0-preview4" />
-    <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.0.0-preview4" />
-    <PackageReference Include="CarinaStudio.AppBase.Application.Avalonia" Version="2.0.11.211-preview" />
-    <PackageReference Include="Dotnet.Bundle" Version="0.9.13" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-    <PackageReference Include="NLog" Version="4.7.13" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
-   </ItemGroup>
 
-   <ItemGroup>
-     <ProjectReference Include="..\AutoUpdater\AutoUpdater.csproj" />
-   </ItemGroup>
-	
+  <ItemGroup>
+    <AvaloniaResource Include="AutoUpdater.Avalonia.ico"/>
+    <AvaloniaResource Include="Strings/Default.axaml"/>
+    <AvaloniaResource Include="Strings/zh-CN.axaml"/>
+    <AvaloniaResource Include="Strings/zh-TW.axaml"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.0.0-preview4"/>
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.0-preview4"/>
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.0.0-preview4"/>
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0-preview4"/>
+    <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.0.0-preview4"/>
+    <PackageReference Include="CarinaStudio.AppBase.Application.Avalonia" Version="2.0.11.211-preview"/>
+    <PackageReference Include="Dotnet.Bundle" Version="0.9.13"/>
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0"/>
+    <PackageReference Include="NLog" Version="4.7.13"/>
+    <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AutoUpdater\AutoUpdater.csproj"/>
+  </ItemGroup>
+  
+  <!-- Trimming options -->
+  <ItemGroup>
+    <TrimmerRootAssembly Include="AutoUpdater.Avalonia"/>
+    <TrimmerRootAssembly Include="NLog"/>
+  </ItemGroup>
+
 </Project>
