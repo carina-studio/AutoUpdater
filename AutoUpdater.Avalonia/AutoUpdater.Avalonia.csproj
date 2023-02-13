@@ -57,6 +57,7 @@
   <ItemGroup>
     <TrimmerRootAssembly Include="AutoUpdater.Avalonia"/>
     <TrimmerRootAssembly Include="NLog"/>
+    <TrimmerRootAssembly Include="System.Private.CoreLib"/>
   </ItemGroup>
 
 </Project>
