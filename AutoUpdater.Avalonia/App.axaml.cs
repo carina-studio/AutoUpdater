@@ -5,17 +5,13 @@ using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Media;
 using Avalonia.Themes.Fluent;
 using CarinaStudio.AutoUpdater.ViewModels;
-using CarinaStudio.Collections;
 using CarinaStudio.Configuration;
 using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
 
 namespace CarinaStudio.AutoUpdater
@@ -27,10 +23,6 @@ namespace CarinaStudio.AutoUpdater
 	{
 		// Constants.
 		const int EXIT_CODE_INVALID_ARGUMENT = 1;
-
-
-		// Static fields.
-		static readonly Regex X11MonitorLineRegex = new Regex("^[\\s]*[\\d]+[\\s]*\\:[\\s]*\\+\\*(?<Name>[^\\s]+)");
 
 
 		// Fields.
@@ -86,46 +78,8 @@ namespace CarinaStudio.AutoUpdater
 			if (Math.Abs(factor - 1) < 0.01)
 				return;
 
-			// get all screens
-			var screenNames = new List<string>();
-			try
-			{
-				using var process = Process.Start(new ProcessStartInfo()
-				{
-					Arguments = "--listactivemonitors",
-					CreateNoWindow = true,
-					FileName = "xrandr",
-					RedirectStandardOutput = true,
-					UseShellExecute = false,
-				});
-				if (process == null)
-					return;
-				using var reader = process.StandardOutput;
-				var line = reader.ReadLine();
-				while (line != null)
-				{
-					var match = X11MonitorLineRegex.Match(line);
-					if (match.Success)
-						screenNames.Add(match.Groups["Name"].Value);
-					line = reader.ReadLine();
-				}
-			}
-			catch
-			{ }
-			if (screenNames.IsEmpty())
-				return;
-
 			// set environment variable
-			var valueBuilder = new StringBuilder();
-			foreach (var screenName in screenNames)
-			{
-				if (valueBuilder.Length > 0)
-					valueBuilder.Append(';');
-				valueBuilder.Append(screenName);
-				valueBuilder.Append('=');
-				valueBuilder.AppendFormat("{0:F1}", factor);
-			}
-			Environment.SetEnvironmentVariable("AVALONIA_SCREEN_SCALE_FACTORS", valueBuilder.ToString());
+			Environment.SetEnvironmentVariable("AVALONIA_GLOBAL_SCALE_FACTOR", factor.ToString());
 		}
 
 
