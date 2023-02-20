@@ -60,8 +60,8 @@ namespace CarinaStudio.AutoUpdater
 				if (codeBase != null && codeBase.StartsWith("file://") && codeBase.Length > 7)
 				{
 					if (Platform.IsWindows)
-						return Path.GetDirectoryName(codeBase.Substring(8).Replace('/', '\\')) ?? Environment.CurrentDirectory;
-					return Path.GetDirectoryName(codeBase.Substring(7)) ?? Environment.CurrentDirectory;
+						return Path.GetDirectoryName(codeBase[8..^0].Replace('/', '\\')) ?? Environment.CurrentDirectory;
+					return Path.GetDirectoryName(codeBase[7..^0]) ?? Environment.CurrentDirectory;
 				}
 				return Environment.CurrentDirectory;
 			});
@@ -135,11 +135,11 @@ namespace CarinaStudio.AutoUpdater
 							if (File.Exists(appExePath))
 								File.SetUnixFileMode(appExePath, File.GetUnixFileMode(appExePath) | UnixFileMode.UserExecute | UnixFileMode.GroupExecute);
 							else
-								app.logger.LogError($"Cannot find executable '{app.appExePath}'");
+								app.logger.LogError("Cannot find executable '{appExePath}'", app.appExePath);
 						}
 						catch (Exception ex)
 						{
-							app.logger.LogError(ex, $"Unable to mark '{app.appExePath}' as executable");
+							app.logger.LogError(ex, "Unable to mark '{appExePath}' as executable", app.appExePath);
 						}
 					}
 
@@ -153,7 +153,7 @@ namespace CarinaStudio.AutoUpdater
 				}
 				catch (Exception ex)
 				{
-					app.logger.LogError(ex, $"Unable to start application '{app.appExePath}'");
+					app.logger.LogError(ex, "Unable to start application '{appExePath}'", app.appExePath);
 				}
 			}
 		}
@@ -212,12 +212,12 @@ namespace CarinaStudio.AutoUpdater
 						Source = new Uri($"avares://AutoUpdater.Avalonia/Strings/{this.CultureInfo.Name}.axaml")
 					};
 					_ = stringResources.Loaded; // trigger error if resource not found
-					this.logger.LogInformation($"Load strings for {this.CultureInfo.Name}");
+					this.logger.LogInformation("Load strings for {name}", this.CultureInfo.Name);
 					this.Resources.MergedDictionaries.Add(stringResources);
 				}
 				catch
 				{
-					this.logger.LogWarning($"No strings for {this.CultureInfo.Name}");
+					this.logger.LogWarning("No strings for {name}", this.CultureInfo.Name);
 				}
 			}
 
@@ -281,7 +281,7 @@ namespace CarinaStudio.AutoUpdater
 			// apply accent color
 			this.accentColor?.Let(accentColor =>
 			{
-				Color GammaTransform(Color color, double gamma)
+				static Color GammaTransform(Color color, double gamma)
 				{
 					double r = (color.R / 255.0);
 					double g = (color.G / 255.0);
@@ -333,7 +333,7 @@ namespace CarinaStudio.AutoUpdater
 							if (Color.TryParse(args[++i], out var color))
 								this.accentColor = color;
 							else
-								this.logger.LogWarning($"Invalid accent color: {args[i]}");
+								this.logger.LogWarning("Invalid accent color: {arg}", args[i]);
 						}
 						else
 							this.logger.LogWarning("No accent color specified");
@@ -344,7 +344,7 @@ namespace CarinaStudio.AutoUpdater
 							if (Version.TryParse(args[++i], out var version))
 								this.appBaseVersion = version;
 							else
-								this.logger.LogWarning($"Invalid base application version: {args[i]}");
+								this.logger.LogWarning("Invalid base application version: {arg}", args[i]);
 						}
 						else
 							this.logger.LogError("No base application version specified");
@@ -358,7 +358,7 @@ namespace CarinaStudio.AutoUpdater
 							}
 							catch 
 							{
-								this.logger.LogWarning($"Invalid culture name: {args[i]}");
+								this.logger.LogWarning("Invalid culture name: {arg}", args[i]);
 							}
 						}
 						else
@@ -430,7 +430,7 @@ namespace CarinaStudio.AutoUpdater
 								this.packageManifestUri = uri;
 							else
 							{
-								this.logger.LogError($"Invalid package manifest URI: {args[i]}");
+								this.logger.LogError("Invalid package manifest URI: {arg}", args[i]);
 								return false;
 							}
 						}
@@ -454,7 +454,7 @@ namespace CarinaStudio.AutoUpdater
 								this.processIdToWaitFor = pid;
 							else
 							{
-								this.logger.LogError($"Invalid process ID: {args[i]}");
+								this.logger.LogError("Invalid process ID: {arg}", args[i]);
 								return false;
 							}
 						}

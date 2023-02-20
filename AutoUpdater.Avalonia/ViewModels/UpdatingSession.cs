@@ -258,7 +258,7 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 						}
 						catch (Exception ex)
 						{
-							this.Logger.LogError(ex, $"Unable to get process {processId} to wait for");
+							this.Logger.LogError(ex, "Unable to get process {processId} to wait for", processId);
 						}
 					}
 
@@ -287,7 +287,7 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 						}
 						catch (Exception ex)
 						{
-							this.Logger.LogError(ex, $"Unable to get process '{processExecutable}' to wait for");
+							this.Logger.LogError(ex, "Unable to get process '{processExecutable}' to wait for", processExecutable);
 						}
 					}
 					return processes;
@@ -301,26 +301,26 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 				}
 
 				// wait for completion
-				this.Logger.LogDebug($"Start waiting for {processes.Count} process(es)");
+				this.Logger.LogDebug("Start waiting for {processCount} process(es)", processes.Count);
 				foreach (var process in processes.Values)
 				{
 					try
 					{
 						using (process)
 						{
-							this.Logger.LogDebug($"Start waiting for process {processId}");
+							this.Logger.LogDebug("Start waiting for process {processId}", processId);
 							await process.WaitForExitAsync(this.processWaitingCancellationTokenSource.Token);
-							this.Logger.LogDebug($"Complete waiting for process {processId}");
+							this.Logger.LogDebug("Complete waiting for process {processId}", processId);
 						}
 					}
 					catch (Exception ex)
 					{
 						if (ex is TaskCanceledException)
 						{
-							this.Logger.LogWarning($"Waiting for process {processId} has been cancelled");
+							this.Logger.LogWarning("Waiting for process {processId} has been cancelled", processId);
 							throw;
 						}
-						this.Logger.LogError(ex, $"Error occurred while waiting for process {processId}");
+						this.Logger.LogError(ex, "Error occurred while waiting for process {processId}", processId);
 					}
 				}
 			}
