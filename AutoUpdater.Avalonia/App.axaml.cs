@@ -56,13 +56,20 @@ namespace CarinaStudio.AutoUpdater
 				var mainModule = Process.GetCurrentProcess().MainModule;
 				if (mainModule != null && Path.GetFileNameWithoutExtension(mainModule.FileName) != "dotnet")
 					return Path.GetDirectoryName(mainModule.FileName) ?? "";
-				var codeBase = System.Reflection.Assembly.GetEntryAssembly()?.GetName()?.CodeBase;
-				if (codeBase != null && codeBase.StartsWith("file://") && codeBase.Length > 7)
+#pragma warning disable SYSLIB0044
+				try
 				{
-					if (Platform.IsWindows)
-						return Path.GetDirectoryName(codeBase[8..^0].Replace('/', '\\')) ?? Environment.CurrentDirectory;
-					return Path.GetDirectoryName(codeBase[7..^0]) ?? Environment.CurrentDirectory;
+					var codeBase = System.Reflection.Assembly.GetEntryAssembly()?.GetName()?.CodeBase;
+					if (codeBase != null && codeBase.StartsWith("file://") && codeBase.Length > 7)
+					{
+						if (Platform.IsWindows)
+							return Path.GetDirectoryName(codeBase[8..^0].Replace('/', '\\')) ?? Environment.CurrentDirectory;
+						return Path.GetDirectoryName(codeBase[7..^0]) ?? Environment.CurrentDirectory;
+					}
 				}
+				catch
+				{ }
+#pragma warning restore SYSLIB0044
 				return Environment.CurrentDirectory;
 			});
 			this.logger = this.LoggerFactory.CreateLogger("App");
