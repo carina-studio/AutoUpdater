@@ -8,20 +8,20 @@
 	<sys:String x:Key="String.Common.Complete">完成</sys:String>
 	
 	<!-- MainWindow -->
-	<sys:String x:Key="String.MainWindow.Title">自动更新</sys:String>
+	<sys:String x:Key="String.MainWindow.Title">应用程序更新</sys:String>
 
 	<!-- UpdatingSession -->
 	<sys:String x:Key="String.UpdatingSession.BackingUpApplication">正在备份 {0}…</sys:String>
-	<sys:String x:Key="String.UpdatingSession.DownloadingPackage">正在下载升级包 ({0})…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.DownloadingPackage">正在下载更新包 ({0})…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.Initializing">准备中…</sys:String>
-	<sys:String x:Key="String.UpdatingSession.InstallingPackage">正在升级 {0}…</sys:String>
-	<sys:String x:Key="String.UpdatingSession.InstallingPackage.WithVersion">正在升级 {0} 至 {1}…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.InstallingPackage">正在更新 {0}…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.InstallingPackage.WithVersion">正在更新 {0} 至 {1}…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.Preparing">准备中…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.RestoringApplication">正在复原 {0}…</sys:String>
-	<sys:String x:Key="String.UpdatingSession.UpdatingCancelled">升级已经取消。</sys:String>
-	<sys:String x:Key="String.UpdatingSession.UpdatingFailed">无法成功升级 {0}。</sys:String>
-	<sys:String x:Key="String.UpdatingSession.UpdatingSucceeded">{0} 升级完成。</sys:String>
-	<sys:String x:Key="String.UpdatingSession.VerifyingPackage">正在验证升级包…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingCancelled">更新已经取消。</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingFailed">无法成功更新 {0}。</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingSucceeded">{0} 更新完成。</sys:String>
+	<sys:String x:Key="String.UpdatingSession.VerifyingPackage">正在验证更新包…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.WaitingForProcess">正在等待关闭 {0}…</sys:String>
     
 </ResourceDictionary>

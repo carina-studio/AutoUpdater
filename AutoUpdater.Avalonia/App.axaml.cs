@@ -25,6 +25,10 @@ namespace CarinaStudio.AutoUpdater
 		const int EXIT_CODE_INVALID_ARGUMENT = 1;
 
 
+		// Static fields.
+		static CultureInfo cultureInfo = CultureInfo.GetCultureInfo("en-US");
+
+
 		// Fields.
 		Color? accentColor;
 		Version? appBaseVersion;
@@ -32,7 +36,6 @@ namespace CarinaStudio.AutoUpdater
 		string? appExeArgs;
 		string? appExePath;
 		string? appName;
-		CultureInfo cultureInfo = CultureInfo.GetCultureInfo("en-US");
 		bool darkMode;
 #if DEBUG
 		bool isDebugMode = true;
@@ -51,6 +54,7 @@ namespace CarinaStudio.AutoUpdater
 		/// </summary>
 		public App()
 		{
+			// get running directory
 			this.RootPrivateDirectoryPath = Global.Run(() =>
 			{
 				var mainModule = Process.GetCurrentProcess().MainModule;
@@ -72,7 +76,21 @@ namespace CarinaStudio.AutoUpdater
 #pragma warning restore SYSLIB0044
 				return Environment.CurrentDirectory;
 			});
+
+			// create logger
 			this.logger = this.LoggerFactory.CreateLogger("App");
+
+			// setup applicatio name
+			var cultureName = cultureInfo.Name;
+			if (cultureName.StartsWith("zh-"))
+			{
+				if (cultureName.EndsWith("TW"))
+					this.Name = "Carina Studio 應用程式更新";
+				else
+					this.Name = "Carina Studio 应用程序更新";
+			}
+			else
+				this.Name = "Carina Studio Application Update";
 		}
 
 
@@ -103,18 +121,31 @@ namespace CarinaStudio.AutoUpdater
 		// Program entry.
 		public static void Main(string[] args)
 		{
-			// apply screen scale factor
-			if (Platform.IsLinux)
+			// parse arguments which are needed before creating application
+			var argCount = args.Length;
+			for (var i = 0; i < argCount; ++i)
 			{
-				for (var i = 0; i < args.Length; ++i)
+				switch (args[i])
 				{
-					if (args[i] == "-screen-scale-factor")
-					{
-						++i;
-						if (i < args.Length && double.TryParse(args[i], out var factor))
+					case "-culture":
+						if (i < argCount - 1)
+						{
+							try
+							{
+								cultureInfo = CultureInfo.GetCultureInfo(args[++i]);
+							}
+							catch 
+							{
+								Console.Error.WriteLine($"Invalid culture name: {args[i]}");
+							}
+						}
+						else
+							Console.Error.WriteLine("No culture name specified");
+						break;
+					case "-screen-scale-factor":
+						if (Platform.IsLinux && i < argCount - 1 && double.TryParse(args[++i], out var factor))
 							ApplyScreenScaleFactor(factor);
 						break;
-					}
 				}
 			}
 
@@ -125,6 +156,14 @@ namespace CarinaStudio.AutoUpdater
 				{
 					if (Platform.IsLinux)
 						it.With(new X11PlatformOptions());
+					else if (Platform.IsMacOS)
+					{
+						it.With(new MacOSPlatformOptions()
+						{
+							DisableDefaultApplicationMenuItems = true,
+							DisableNativeMenus = true,
+						});
+					}
 				}).StartWithClassicDesktopLifetime(args);
 
 			// start application
@@ -210,21 +249,26 @@ namespace CarinaStudio.AutoUpdater
 			NLog.LogManager.ReconfigExistingLoggers();
 
 			// load strings
-			if (!this.CultureInfo.Name.StartsWith("en-"))
+			var cultureName = cultureInfo.Name;
+			if (!cultureName.StartsWith("en-") && cultureName.StartsWith("zh"))
 			{
 				try
 				{
+					if (cultureName.EndsWith("TW"))
+						cultureName = "zh-TW";
+					else
+						cultureName = "zh-CN";
 					var stringResources = new ResourceInclude()
 					{
-						Source = new Uri($"avares://AutoUpdater.Avalonia/Strings/{this.CultureInfo.Name}.axaml")
+						Source = new Uri($"avares://AutoUpdater.Avalonia/Strings/{cultureName}.axaml")
 					};
 					_ = stringResources.Loaded; // trigger error if resource not found
-					this.logger.LogInformation("Load strings for {name}", this.CultureInfo.Name);
+					this.logger.LogInformation("Load strings for {name}", cultureName);
 					this.Resources.MergedDictionaries.Add(stringResources);
 				}
 				catch
 				{
-					this.logger.LogWarning("No strings for {name}", this.CultureInfo.Name);
+					this.logger.LogWarning("No strings for {name}", cultureName);
 				}
 			}
 
@@ -357,19 +401,7 @@ namespace CarinaStudio.AutoUpdater
 							this.logger.LogError("No base application version specified");
 						break;
 					case "-culture":
-						if (i < argCount - 1)
-						{
-							try
-							{
-								this.cultureInfo = CultureInfo.GetCultureInfo(args[++i]);
-							}
-							catch 
-							{
-								this.logger.LogWarning("Invalid culture name: {arg}", args[i]);
-							}
-						}
-						else
-							this.logger.LogError("No culture name specified");
+						++i;
 						break;
 					case "-dark-mode":
 						this.darkMode = true;
@@ -492,7 +524,7 @@ namespace CarinaStudio.AutoUpdater
 
 
 		// Implementations.
-		public override CultureInfo CultureInfo { get => this.cultureInfo; }
+		public override CultureInfo CultureInfo { get => cultureInfo; }
 		public override IObservable<string?> GetObservableString(string key) => new FixedObservableValue<string?>(null);
 		public override string? GetString(string key, string? defaultValue = null)
 		{
