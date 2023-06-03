@@ -42,7 +42,7 @@
     <PackageReference Include="Avalonia.Diagnostics" Version="11.0.0-preview4"/>
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0-preview4"/>
     <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.0.0-preview4"/>
-    <PackageReference Include="CarinaStudio.AppBase.Application.Avalonia" Version="2.0.11.211-preview"/>
+    <PackageReference Include="CarinaStudio.AppBase.Application.Avalonia" Version="2.0.23.601-preview"/>
     <PackageReference Include="Dotnet.Bundle" Version="0.9.13"/>
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0"/>
     <PackageReference Include="NLog" Version="4.7.13"/>

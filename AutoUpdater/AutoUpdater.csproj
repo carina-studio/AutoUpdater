@@ -11,13 +11,12 @@
     <Authors>Carina Studio</Authors>
     <Company>Carina Studio</Company>
     <Copyright>©2021 Carina Studio</Copyright>
-    <StartupObject></StartupObject>
     <ApplicationIcon />
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CarinaStudio.AppBase.Application" Version="2.0.11.211-preview" />
-    <PackageReference Include="CarinaStudio.AppBase.AutoUpdate" Version="2.0.11.211-preview" />
+    <PackageReference Include="CarinaStudio.AppBase.Application" Version="2.0.23.601-preview" />
+    <PackageReference Include="CarinaStudio.AppBase.AutoUpdate" Version="2.0.23.601-preview" />
   </ItemGroup>
 
 </Project>
