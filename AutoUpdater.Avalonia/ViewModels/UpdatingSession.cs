@@ -60,7 +60,7 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		{
 			if (source is not WebRequestStreamProvider wrStreamProvider)
 				return base.CreatePackageResolver(source);
-			var packageManifestName = Path.GetExtension(wrStreamProvider.RequestUri.LocalPath)?.ToLower();
+			var packageManifestName = Path.GetExtension(wrStreamProvider.RequestUri.LocalPath).ToLower();
 			if (packageManifestName == ".xml")
 				return new XmlPackageResolver(this.Application, this.ApplicationBaseVersion) { Source = source };
 			return new JsonPackageResolver(this.Application, this.ApplicationBaseVersion) { Source = source };
@@ -279,8 +279,10 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 										processes[process.Id] = process;
 									}
 								}
+								// ReSharper disable EmptyGeneralCatchClause
 								catch
 								{ }
+								// ReSharper restore EmptyGeneralCatchClause
 								if (this.processWaitingCancellationTokenSource.IsCancellationRequested)
 									break;
 							}

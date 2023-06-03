@@ -63,7 +63,7 @@ namespace CarinaStudio.AutoUpdater
 #pragma warning disable SYSLIB0044
 				try
 				{
-					var codeBase = System.Reflection.Assembly.GetEntryAssembly()?.GetName()?.CodeBase;
+					var codeBase = System.Reflection.Assembly.GetEntryAssembly()?.GetName().CodeBase;
 					if (codeBase != null && codeBase.StartsWith("file://") && codeBase.Length > 7)
 					{
 						if (Platform.IsWindows)
@@ -71,16 +71,20 @@ namespace CarinaStudio.AutoUpdater
 						return Path.GetDirectoryName(codeBase[7..^0]) ?? Environment.CurrentDirectory;
 					}
 				}
+				// ReSharper disable EmptyGeneralCatchClause
 				catch
 				{ }
+				// ReSharper restore EmptyGeneralCatchClause
 #pragma warning restore SYSLIB0044
 				return Environment.CurrentDirectory;
 			});
 
 			// create logger
+			// ReSharper disable VirtualMemberCallInConstructor
 			this.logger = this.LoggerFactory.CreateLogger("App");
+			// ReSharper restore VirtualMemberCallInConstructor
 
-			// setup applicatio name
+			// setup application name
 			var cultureName = cultureInfo.Name;
 			if (cultureName.StartsWith("zh-"))
 			{
@@ -115,7 +119,7 @@ namespace CarinaStudio.AutoUpdater
 		/// <summary>
 		/// Check whether executable of application has been specified or not.
 		/// </summary>
-		public bool IsAppExecutableSpecified { get => !string.IsNullOrWhiteSpace(this.appExePath); }
+		public bool IsAppExecutableSpecified => !string.IsNullOrWhiteSpace(this.appExePath);
 
 
 		// Program entry.
@@ -194,7 +198,7 @@ namespace CarinaStudio.AutoUpdater
 					{
 						Arguments = app.appExeArgs ?? "",
 						FileName = app.appExePath.AsNonNull(),
-						UseShellExecute = Platform.IsMacOS && Path.GetExtension(app.appExePath)?.ToLower() == ".app",
+						UseShellExecute = Platform.IsMacOS && Path.GetExtension(app.appExePath).ToLower() == ".app",
 					});
 				}
 				catch (Exception ex)
@@ -524,7 +528,7 @@ namespace CarinaStudio.AutoUpdater
 
 
 		// Implementations.
-		public override CultureInfo CultureInfo { get => cultureInfo; }
+		public override CultureInfo CultureInfo => cultureInfo;
 		public override IObservable<string?> GetObservableString(string key) => new FixedObservableValue<string?>(null);
 		public override string? GetString(string key, string? defaultValue = null)
 		{
@@ -532,7 +536,9 @@ namespace CarinaStudio.AutoUpdater
 				return str;
 			return defaultValue;
 		}
+		// ReSharper disable UnassignedGetOnlyAutoProperty
 		public override bool IsShutdownStarted { get; }
+		// ReSharper restore UnassignedGetOnlyAutoProperty
 		public override ILoggerFactory LoggerFactory { get; } = new LoggerFactory(new ILoggerProvider[] { new NLog.Extensions.Logging.NLogLoggerProvider() });
 		public override ISettings PersistentState { get; } = new MemorySettings();
 		public override string RootPrivateDirectoryPath { get; }

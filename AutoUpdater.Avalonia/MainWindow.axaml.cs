@@ -8,108 +8,107 @@ using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CarinaStudio.AutoUpdater
+namespace CarinaStudio.AutoUpdater;
+
+/// <summary>
+/// Main window.
+/// </summary>
+class MainWindow : Window
 {
+	// Fields.
+	readonly SynchronizationContext synchronizationContext = SynchronizationContext.Current.AsNonNull();
+
+
 	/// <summary>
-	/// Main window.
+	/// Initialize new <see cref="MainWindow"/> instance.
 	/// </summary>
-	partial class MainWindow : Window
+	public MainWindow()
 	{
-		// Fields.
-		readonly SynchronizationContext synchronizationContext = SynchronizationContext.Current.AsNonNull();
+		InitializeComponent();
+	}
 
 
-		/// <summary>
-		/// Initialize new <see cref="MainWindow"/> instance.
-		/// </summary>
-		public MainWindow()
+	// Initialize.
+	private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
+
+
+	// Closing window.
+	protected override void OnClosing(CancelEventArgs e)
+	{
+		if (this.DataContext is ViewModels.UpdatingSession session && session.IsUpdating)
 		{
-			InitializeComponent();
+			e.Cancel = true;
+			if (!session.IsUpdatingCancelling)
+				session.CancelUpdatingCommand.TryExecute();
 		}
+		base.OnClosing(e);
+	}
 
 
-		// Initialize.
-		private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
+	// Window opened.
+	protected override void OnOpened(EventArgs e)
+	{
+		// call base
+		base.OnOpened(e);
 
-
-		// Closing window.
-		protected override void OnClosing(CancelEventArgs e)
+		// start updating
+		if (this.DataContext is ViewModels.UpdatingSession session)
 		{
-			if (this.DataContext is ViewModels.UpdatingSession session && session.IsUpdating)
+			this.synchronizationContext.PostDelayed(async () =>
 			{
-				e.Cancel = true;
-				if (!session.IsUpdatingCancelling)
-					session.CancelUpdatingCommand.TryExecute();
-			}
-			base.OnClosing(e);
+				// wait for process
+				try
+				{
+					await session.WaitForProcess();
+				}
+				catch (TaskCanceledException)
+				{
+					this.synchronizationContext.Post(this.Close);
+					return;
+				}
+
+				// start updating
+				if (!session.StartUpdatingCommand.TryExecute())
+					this.synchronizationContext.Post(this.Close);
+			}, 500);
 		}
+		else
+			this.synchronizationContext.Post(this.Close);
+	}
 
 
-		// Window opened.
-		protected override void OnOpened(EventArgs e)
+	// Called when property changed.
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+	{
+		base.OnPropertyChanged(change);
+		if (change.Property == DataContextProperty)
 		{
-			// call base
-			base.OnOpened(e);
-
-			// start updating
-			if (this.DataContext is ViewModels.UpdatingSession session)
+			(change.OldValue as ViewModels.UpdatingSession)?.Let(it =>
 			{
-				this.synchronizationContext.PostDelayed(async () =>
-				{
-					// wait for process
-					try
-					{
-						await session.WaitForProcess();
-					}
-					catch (TaskCanceledException)
-					{
-						this.synchronizationContext.Post(this.Close);
-						return;
-					}
-
-					// start updating
-					if (!session.StartUpdatingCommand.TryExecute())
-						this.synchronizationContext.Post(this.Close);
-				}, 500);
-			}
-			else
-				this.synchronizationContext.Post(this.Close);
+				it.PropertyChanged -= this.OnSessionPropertyChanged;
+			});
+			(change.NewValue as ViewModels.UpdatingSession)?.Let(it =>
+			{
+				it.PropertyChanged += this.OnSessionPropertyChanged;
+			});
 		}
+	}
 
 
-		// Called when property changed.
-		protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+	// Called when property of session changed.
+	void OnSessionPropertyChanged(object? sender, PropertyChangedEventArgs e)
+	{
+		if (e.PropertyName == nameof(ViewModels.UpdatingSession.IsUpdatingCompleted))
 		{
-			base.OnPropertyChanged(change);
-			if (change.Property == DataContextProperty)
+			this.synchronizationContext.Post(() =>
 			{
-				(change.OldValue as ViewModels.UpdatingSession)?.Let(it =>
+				if (this.DataContext is ViewModels.UpdatingSession session 
+					&& session.IsUpdatingSucceeded
+					&& ((App)App.Current).IsAppExecutableSpecified)
 				{
-					it.PropertyChanged -= this.OnSessionPropertyChanged;
-				});
-				(change.NewValue as ViewModels.UpdatingSession)?.Let(it =>
-				{
-					it.PropertyChanged += this.OnSessionPropertyChanged;
-				});
-			}
-		}
-
-
-		// Called when property of session changed.
-		void OnSessionPropertyChanged(object? sender, PropertyChangedEventArgs e)
-		{
-			if (e.PropertyName == nameof(ViewModels.UpdatingSession.IsUpdatingCompleted))
-			{
-				this.synchronizationContext.Post(() =>
-				{
-					if (this.DataContext is ViewModels.UpdatingSession session 
-						&& session.IsUpdatingSucceeded
-						&& ((App)App.Current).IsAppExecutableSpecified)
-					{
-						this.Close();
-					}
-				});
-			}
+					this.Close();
+				}
+			});
 		}
 	}
 }
