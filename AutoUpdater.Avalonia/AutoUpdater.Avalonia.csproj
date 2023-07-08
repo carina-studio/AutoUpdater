@@ -11,7 +11,7 @@
     <TrimMode>partial</TrimMode>
     <Authors>Carina Studio</Authors>
     <Company>Carina Studio</Company>
-    <Copyright>©2021 Carina Studio</Copyright>
+    <Copyright>©2021-2023 Carina Studio</Copyright>
     <StartupObject>CarinaStudio.AutoUpdater.App</StartupObject>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <AvaloniaNameGeneratorFilterByNamespace>Dummy</AvaloniaNameGeneratorFilterByNamespace> <!-- Prevent generating InitializeComponents() and fields -->
@@ -31,6 +31,8 @@
 
   <ItemGroup>
     <AvaloniaResource Include="AutoUpdater.Avalonia.ico"/>
+    <AvaloniaResource Include="Fonts/Inter-Bold.ttf" />
+    <AvaloniaResource Include="Fonts/Inter-Regular.ttf" />
     <AvaloniaResource Include="Strings/Default.axaml"/>
     <AvaloniaResource Include="Strings/zh-CN.axaml"/>
     <AvaloniaResource Include="Strings/zh-TW.axaml"/>

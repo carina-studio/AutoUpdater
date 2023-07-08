@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
+using Avalonia.Media.Fonts;
 using Avalonia.Styling;
 using Avalonia.Themes.Fluent;
 using CarinaStudio.AutoUpdater.ViewModels;
@@ -159,11 +160,32 @@ namespace CarinaStudio.AutoUpdater
 				.UsePlatformDetect()
 				.LogToTrace().Also(it =>
 				{
-					if (Platform.IsLinux)
+					if (Platform.IsWindows)
+					{
+						it.ConfigureFonts(fontManager =>
+						{
+							fontManager.AddFontCollection(new EmbeddedFontCollection(
+								new Uri("fonts:Inter", UriKind.Absolute),
+								new Uri($"avares://AutoUpdater.Avalonia/Fonts", UriKind.Absolute)));
+						});
+					}
+					else if (Platform.IsLinux)
+					{
+						it.With(new FontManagerOptions
+						{
+							DefaultFamilyName = $"avares://AutoUpdater.Avalonia/Fonts/#Inter"
+						});
 						it.With(new X11PlatformOptions());
+					}
 					else if (Platform.IsMacOS)
 					{
-						it.With(new MacOSPlatformOptions()
+						it.ConfigureFonts(fontManager =>
+						{
+							fontManager.AddFontCollection(new EmbeddedFontCollection(
+								new Uri("fonts:Inter", UriKind.Absolute),
+								new Uri($"avares://AutoUpdater.Avalonia/Fonts", UriKind.Absolute)));
+						});
+						it.With(new MacOSPlatformOptions
 						{
 							DisableDefaultApplicationMenuItems = true,
 							DisableNativeMenus = true,
