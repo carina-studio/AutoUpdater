@@ -156,6 +156,17 @@ namespace CarinaStudio.AutoUpdater
 			}
 
 			// start updating
+			var cjkUnicodeRanges = new UnicodeRange(new UnicodeRangeSegment[]
+			{
+				// ReSharper disable CommentTypo
+				new(0x2e80, 0x2eff), // CJKRadicalsSupplement
+				new(0x3000, 0x303f), // CJKSymbolsandPunctuation
+				new(0x3200, 0x4dbf), // EnclosedCJKLettersandMonths, CJKCompatibility, CJKUnifiedIdeographsExtensionA
+				new(0x4e00, 0x9fff), // CJKUnifiedIdeographs
+				new(0xf900, 0xfaff), // CJKCompatibilityIdeographs
+				new(0xfe30, 0xfe4f), // CJKCompatibilityForms
+				// ReSharper restore CommentTypo
+			});
 			AppBuilder.Configure<App>()
 				.UsePlatformDetect()
 				.LogToTrace().Also(it =>
@@ -168,12 +179,75 @@ namespace CarinaStudio.AutoUpdater
 								new Uri("fonts:Inter", UriKind.Absolute),
 								new Uri($"avares://AutoUpdater.Avalonia/Fonts", UriKind.Absolute)));
 						});
+						it.With(new FontManagerOptions
+						{
+							// ReSharper disable StringLiteralTypo
+							FontFallbacks = new FontFallback[]
+							{
+								new()
+								{
+									FontFamily = new("Microsoft JhengHei UI"),
+									UnicodeRange = cjkUnicodeRanges,
+								},
+								new()
+								{
+									FontFamily = new("Microsoft YaHei UI"),
+									UnicodeRange = cjkUnicodeRanges,
+								},
+								new()
+								{
+									FontFamily = new("PMingLiU"),
+									UnicodeRange = cjkUnicodeRanges,
+								},
+								new()
+								{
+									FontFamily = new("MingLiU"),
+									UnicodeRange = cjkUnicodeRanges,
+								}
+							},
+							// ReSharper restore StringLiteralTypo
+						});
 					}
 					else if (Platform.IsLinux)
 					{
 						it.With(new FontManagerOptions
 						{
-							DefaultFamilyName = $"avares://AutoUpdater.Avalonia/Fonts/#Inter"
+							DefaultFamilyName = $"avares://AutoUpdater.Avalonia/Fonts/#Inter",
+							// ReSharper disable StringLiteralTypo
+							FontFallbacks = new FontFallback[]
+							{
+								new()
+								{
+									FontFamily = new("Noto Sans CJK TC"),
+									UnicodeRange = cjkUnicodeRanges,
+								},
+								new()
+								{
+									FontFamily = new("Noto Sans CJK SC"),
+									UnicodeRange = cjkUnicodeRanges,
+								},
+								new()
+								{
+									FontFamily = new("Noto Sans Mono CJK TC"),
+									UnicodeRange = cjkUnicodeRanges,
+								},
+								new()
+								{
+									FontFamily = new("Noto Sans Mono CJK SC"),
+									UnicodeRange = cjkUnicodeRanges,
+								},
+								new()
+								{
+									FontFamily = new("Noto Serif CJK TC"),
+									UnicodeRange = cjkUnicodeRanges,
+								},
+								new()
+								{
+									FontFamily = new("Noto Serif CJK SC"),
+									UnicodeRange = cjkUnicodeRanges,
+								}
+							},
+							// ReSharper restore StringLiteralTypo
 						});
 						it.With(new X11PlatformOptions());
 					}
