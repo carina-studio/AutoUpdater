@@ -1,8 +1,9 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using Avalonia.Markup.Xaml.MarkupExtensions;
+using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
+using Avalonia.Styling;
 using Avalonia.Themes.Fluent;
 using CarinaStudio.AutoUpdater.ViewModels;
 using CarinaStudio.Configuration;
@@ -262,9 +263,9 @@ namespace CarinaStudio.AutoUpdater
 						cultureName = "zh-TW";
 					else
 						cultureName = "zh-CN";
-					var stringResources = new ResourceInclude()
+					var stringResources = new ResourceInclude(new Uri("avares://AutoUpdater.Avalonia/"))
 					{
-						Source = new Uri($"avares://AutoUpdater.Avalonia/Strings/{cultureName}.axaml")
+						Source = new Uri($"/Strings/{cultureName}.axaml", UriKind.Relative)
 					};
 					_ = stringResources.Loaded; // trigger error if resource not found
 					this.logger.LogInformation("Load strings for {name}", cultureName);
@@ -277,10 +278,7 @@ namespace CarinaStudio.AutoUpdater
 			}
 
 			// load styles
-			this.Styles.Add(new FluentTheme(new Uri("avares://AutoUpdater.Avalonia"))
-			{
-				Mode = this.darkMode ? FluentThemeMode.Dark : FluentThemeMode.Light
-			});
+			this.Styles.Add(new FluentTheme());
 			this.Resources["Brush/Window.Background"] = new SolidColorBrush(this.darkMode ? Color.Parse("#1e1e1e") : Color.Parse("#f0f0f0"));
 			if (this.darkMode)
             {
@@ -332,6 +330,7 @@ namespace CarinaStudio.AutoUpdater
 				this.Resources["ButtonBorderBrushPointerOver"] = borderBrush;
 				this.Resources["ButtonBorderBrushPressed"] = borderBrushPressed;
 			}
+			this.RequestedThemeVariant = this.darkMode ? ThemeVariant.Dark : ThemeVariant.Light;
 
 			// apply accent color
 			this.accentColor?.Let(accentColor =>
@@ -530,12 +529,8 @@ namespace CarinaStudio.AutoUpdater
 		// Implementations.
 		public override CultureInfo CultureInfo => cultureInfo;
 		public override IObservable<string?> GetObservableString(string key) => new FixedObservableValue<string?>(null);
-		public override string? GetString(string key, string? defaultValue = null)
-		{
-			if (this.Resources.TryGetResource($"String.{key}", out var value) && value is string str)
-				return str;
-			return defaultValue;
-		}
+		public override string? GetString(string key, string? defaultValue = null) =>
+			this.FindResourceOrDefault($"String.{key}", defaultValue);
 		// ReSharper disable UnassignedGetOnlyAutoProperty
 		public override bool IsShutdownStarted { get; }
 		// ReSharper restore UnassignedGetOnlyAutoProperty

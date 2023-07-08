@@ -33,7 +33,7 @@ class MainWindow : Window
 
 
 	// Closing window.
-	protected override void OnClosing(CancelEventArgs e)
+	protected override void OnClosing(WindowClosingEventArgs e)
 	{
 		if (this.DataContext is ViewModels.UpdatingSession session && session.IsUpdating)
 		{
