@@ -1,10 +1,13 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using CarinaStudio.Threading;
 using CarinaStudio.Windows.Input;
+using Microsoft.Extensions.Logging;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,6 +19,7 @@ namespace CarinaStudio.AutoUpdater;
 class MainWindow : Window
 {
 	// Fields.
+	readonly ILogger logger;
 	readonly SynchronizationContext synchronizationContext = SynchronizationContext.Current.AsNonNull();
 
 
@@ -24,19 +28,32 @@ class MainWindow : Window
 	/// </summary>
 	public MainWindow()
 	{
-		InitializeComponent();
+		AvaloniaXamlLoader.Load(this);
+		this.logger = App.Current.LoggerFactory.CreateLogger(nameof(MainWindow));
 	}
 
 
-	// Initialize.
-	private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
+	/// <inheritdoc/>
+	protected override void OnClosed(EventArgs e)
+	{
+		this.synchronizationContext.PostDelayed(() => // [Workaround] Prevent application hanging on macOS
+		{
+			var app = (App)App.Current;
+			this.logger.LogWarning("Application didn't exit yet");
+			app.StartApplication();
+			this.logger.LogWarning("Stop process directly");
+			this.synchronizationContext.PostDelayed(Process.GetCurrentProcess().Kill, 1000);
+		}, 1000);
+		base.OnClosed(e);
+	}
 
 
-	// Closing window.
+	/// <inheritdoc/>
 	protected override void OnClosing(WindowClosingEventArgs e)
 	{
 		if (this.DataContext is ViewModels.UpdatingSession session && session.IsUpdating)
 		{
+			this.logger.LogWarning("Cancel updating by closing window");
 			e.Cancel = true;
 			if (!session.IsUpdatingCancelling)
 				session.CancelUpdatingCommand.TryExecute();
@@ -106,6 +123,7 @@ class MainWindow : Window
 					&& session.IsUpdatingSucceeded
 					&& ((App)App.Current).IsAppExecutableSpecified)
 				{
+					this.logger.LogWarning("Updating completed, close window to start application");
 					this.Close();
 				}
 			});

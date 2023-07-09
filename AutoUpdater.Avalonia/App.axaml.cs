@@ -14,7 +14,6 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Runtime.InteropServices;
 
 namespace CarinaStudio.AutoUpdater
 {
@@ -39,6 +38,7 @@ namespace CarinaStudio.AutoUpdater
 		string? appExePath;
 		string? appName;
 		bool darkMode;
+		bool isStartAppCalled;
 #if DEBUG
 		bool isDebugMode = true;
 #else
@@ -80,11 +80,40 @@ namespace CarinaStudio.AutoUpdater
 #pragma warning restore SYSLIB0044
 				return Environment.CurrentDirectory;
 			});
+			
+			// setup logger
+			NLog.LogManager.Configuration = new NLog.Config.LoggingConfiguration().Also(it =>
+			{
+				var fileTarget = new NLog.Targets.FileTarget("file")
+				{
+					ArchiveAboveSize = 10L << 20, // 10 MB per log file
+					ArchiveFileKind = NLog.Targets.FilePathKind.Absolute,
+					ArchiveFileName = Path.Combine(this.RootPrivateDirectoryPath, "Log", "log.txt"),
+					ArchiveNumbering = NLog.Targets.ArchiveNumberingMode.Sequence,
+					FileName = Path.Combine(this.RootPrivateDirectoryPath, "Log", "log.txt"),
+					// ReSharper disable StringLiteralTypo
+					Layout = "${longdate} ${pad:padding=-5:inner=${processid}} ${pad:padding=-4:inner=${threadid}} ${pad:padding=-5:inner=${level:uppercase=true}} ${logger:shortName=true}: ${message} ${exception:format=tostring}",
+					// ReSharper restore StringLiteralTypo
+					MaxArchiveFiles = 10,
+				};
+				var rule = new NLog.Config.LoggingRule("logToFile").Also(rule =>
+				{
+					rule.LoggerNamePattern = "*";
+					rule.SetLoggingLevels(
+						this.isDebugMode ? NLog.LogLevel.Trace : NLog.LogLevel.Debug,
+						NLog.LogLevel.Error
+					);
+					rule.Targets.Add(fileTarget);
+				});
+				it.AddTarget(fileTarget);
+				it.LoggingRules.Add(rule);
+			});
 
 			// create logger
 			// ReSharper disable VirtualMemberCallInConstructor
 			this.logger = this.LoggerFactory.CreateLogger("App");
 			// ReSharper restore VirtualMemberCallInConstructor
+			this.logger.LogWarning("Create");
 
 			// setup application name
 			var cultureName = cultureInfo.Name;
@@ -122,6 +151,12 @@ namespace CarinaStudio.AutoUpdater
 		/// Check whether executable of application has been specified or not.
 		/// </summary>
 		public bool IsAppExecutableSpecified => !string.IsNullOrWhiteSpace(this.appExePath);
+		
+		
+		/// <summary>
+		/// Check whether main loop of application has been exited or not.
+		/// </summary>
+		public bool IsExited { get; private set; }
 
 
 		// Program entry.
@@ -266,43 +301,14 @@ namespace CarinaStudio.AutoUpdater
 						});
 					}
 				}).StartWithClassicDesktopLifetime(args);
-
+			
+			// update state
+			var app = (App)Current;
+			app.IsExited = true;
+			
 			// start application
-			var app = (App)App.Current;
-			if (app.updatingSession?.IsUpdatingCompleted == true && app.IsAppExecutableSpecified)
-			{
-				try
-				{
-					// mark file as executable
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-					{
-						try
-						{
-							var appExePath = app.appExePath.AsNonNull();
-							if (File.Exists(appExePath))
-								File.SetUnixFileMode(appExePath, File.GetUnixFileMode(appExePath) | UnixFileMode.UserExecute | UnixFileMode.GroupExecute);
-							else
-								app.logger.LogError("Cannot find executable '{appExePath}'", app.appExePath);
-						}
-						catch (Exception ex)
-						{
-							app.logger.LogError(ex, "Unable to mark '{appExePath}' as executable", app.appExePath);
-						}
-					}
-
-					// start application
-					using var process = Process.Start(new ProcessStartInfo()
-					{
-						Arguments = app.appExeArgs ?? "",
-						FileName = app.appExePath.AsNonNull(),
-						UseShellExecute = Platform.IsMacOS && Path.GetExtension(app.appExePath).ToLower() == ".app",
-					});
-				}
-				catch (Exception ex)
-				{
-					app.logger.LogError(ex, "Unable to start application '{appExePath}'", app.appExePath);
-				}
-			}
+			app.StartApplication();
+			app.logger.LogWarning("Complete");
 		}
 
 
@@ -321,33 +327,6 @@ namespace CarinaStudio.AutoUpdater
 				this.SynchronizationContext.Post(() => desktopLifetime.Shutdown(EXIT_CODE_INVALID_ARGUMENT));
 				return;
 			}
-
-			// setup logger
-			NLog.LogManager.Configuration = new NLog.Config.LoggingConfiguration().Also(it =>
-			{
-				var fileTarget = new NLog.Targets.FileTarget("file")
-				{
-					ArchiveAboveSize = 10L << 20, // 10 MB per log file
-					ArchiveFileKind = NLog.Targets.FilePathKind.Absolute,
-					ArchiveFileName = Path.Combine(this.RootPrivateDirectoryPath, "Log", "log.txt"),
-					ArchiveNumbering = NLog.Targets.ArchiveNumberingMode.Sequence,
-					FileName = Path.Combine(this.RootPrivateDirectoryPath, "Log", "log.txt"),
-					Layout = "${longdate} ${pad:padding=-5:inner=${processid}} ${pad:padding=-4:inner=${threadid}} ${pad:padding=-5:inner=${level:uppercase=true}} ${logger:shortName=true}: ${message} ${exception:format=tostring}",
-					MaxArchiveFiles = 10,
-				};
-				var rule = new NLog.Config.LoggingRule("logToFile").Also(rule =>
-				{
-					rule.LoggerNamePattern = "*";
-					rule.SetLoggingLevels(
-						this.isDebugMode ? NLog.LogLevel.Trace : NLog.LogLevel.Debug,
-						NLog.LogLevel.Error
-					);
-					rule.Targets.Add(fileTarget);
-				});
-				it.AddTarget(fileTarget);
-				it.LoggingRules.Add(rule);
-			});
-			NLog.LogManager.ReconfigExistingLoggers();
 
 			// load strings
 			var cultureName = cultureInfo.Name;
@@ -464,7 +443,7 @@ namespace CarinaStudio.AutoUpdater
 			// show main window
 			this.SynchronizationContext.Post(() =>
 			{
-				new MainWindow() { DataContext = this.updatingSession }.Show();
+				new MainWindow { DataContext = this.updatingSession }.Show();
 			});
 		}
 
@@ -619,6 +598,62 @@ namespace CarinaStudio.AutoUpdater
 				};
 			}
 			return true;
+		}
+
+
+		/// <summary>
+		/// Start application if available.
+		/// </summary>
+		public bool StartApplication()
+		{
+			// check state
+			if (this.updatingSession?.IsUpdatingSucceeded != true 
+			    || !this.IsAppExecutableSpecified
+			    || this.isStartAppCalled)
+			{
+				return false;
+			}
+
+			// start application
+			this.isStartAppCalled = true;
+			try
+			{
+				// mark file as executable
+				if (Platform.IsLinux)
+				{
+					try
+					{
+						var appExePath = this.appExePath.AsNonNull();
+						if (File.Exists(appExePath))
+						{
+#pragma warning disable CA1416
+							File.SetUnixFileMode(appExePath, File.GetUnixFileMode(appExePath) | UnixFileMode.UserExecute | UnixFileMode.GroupExecute);
+#pragma warning restore CA1416
+						}
+						else
+							this.logger.LogError("Cannot find executable '{appExePath}'", this.appExePath);
+					}
+					catch (Exception ex)
+					{
+						this.logger.LogError(ex, "Unable to mark '{appExePath}' as executable", this.appExePath);
+					}
+				}
+
+				// start application
+				this.logger.LogDebug("Start application '{appExePath}'", this.appExePath);
+				Process.Start(new ProcessStartInfo
+				{
+					Arguments = this.appExeArgs ?? "",
+					FileName = this.appExePath.AsNonNull(),
+					UseShellExecute = Platform.IsMacOS && Path.GetExtension(this.appExePath).ToLower() == ".app",
+				});
+				return true;
+			}
+			catch (Exception ex)
+			{
+				this.logger.LogError(ex, "Unable to start application '{appExePath}'", this.appExePath);
+				return false;
+			}
 		}
 
 
