@@ -14,6 +14,11 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using NLog;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace CarinaStudio.AutoUpdater
 {
@@ -44,6 +49,7 @@ namespace CarinaStudio.AutoUpdater
 #else
 		bool isDebugMode;
 #endif
+		readonly ManualResetEventSlim isLoggerReadyEvent = new(false);
 		readonly ILogger logger;
 		Uri? packageManifestUri;
 		int? processIdToWaitFor;
@@ -59,9 +65,23 @@ namespace CarinaStudio.AutoUpdater
 			// get running directory
 			this.RootPrivateDirectoryPath = Global.Run(() =>
 			{
+				// get path from main module
+				if (Platform.IsWindows)
+				{
+					var fileNameBuffer = new StringBuilder(256);
+					var size = Win32.GetModuleFileName(default, fileNameBuffer, (uint)fileNameBuffer.Capacity);
+					if (size <= fileNameBuffer.Capacity)
+					{
+						var fileName = fileNameBuffer.ToString();
+						if (Path.GetFileNameWithoutExtension(fileName) != "dotnet")
+							return Path.GetDirectoryName(fileName) ?? "";
+					}
+				}
 				var mainModule = Process.GetCurrentProcess().MainModule;
 				if (mainModule != null && Path.GetFileNameWithoutExtension(mainModule.FileName) != "dotnet")
 					return Path.GetDirectoryName(mainModule.FileName) ?? "";
+				
+				// get path from assembly
 #pragma warning disable SYSLIB0044
 				try
 				{
@@ -69,8 +89,8 @@ namespace CarinaStudio.AutoUpdater
 					if (codeBase != null && codeBase.StartsWith("file://") && codeBase.Length > 7)
 					{
 						if (Platform.IsWindows)
-							return Path.GetDirectoryName(codeBase[8..^0].Replace('/', '\\')) ?? Environment.CurrentDirectory;
-						return Path.GetDirectoryName(codeBase[7..^0]) ?? Environment.CurrentDirectory;
+							return Path.GetDirectoryName(codeBase[8..].Replace('/', '\\')) ?? Environment.CurrentDirectory;
+						return Path.GetDirectoryName(codeBase[7..]) ?? Environment.CurrentDirectory;
 					}
 				}
 				// ReSharper disable EmptyGeneralCatchClause
@@ -82,31 +102,43 @@ namespace CarinaStudio.AutoUpdater
 			});
 			
 			// setup logger
-			NLog.LogManager.Configuration = new NLog.Config.LoggingConfiguration().Also(it =>
+			LogManager.Configuration = new NLog.Config.LoggingConfiguration().Also(it =>
 			{
-				var fileTarget = new NLog.Targets.FileTarget("file")
+				ThreadPool.QueueUserWorkItem(s =>
 				{
-					ArchiveAboveSize = 10L << 20, // 10 MB per log file
-					ArchiveFileKind = NLog.Targets.FilePathKind.Absolute,
-					ArchiveFileName = Path.Combine(this.RootPrivateDirectoryPath, "Log", "log.txt"),
-					ArchiveNumbering = NLog.Targets.ArchiveNumberingMode.Sequence,
-					FileName = Path.Combine(this.RootPrivateDirectoryPath, "Log", "log.txt"),
-					// ReSharper disable StringLiteralTypo
-					Layout = "${longdate} ${pad:padding=-5:inner=${processid}} ${pad:padding=-4:inner=${threadid}} ${pad:padding=-5:inner=${level:uppercase=true}} ${logger:shortName=true}: ${message} ${exception:format=tostring}",
-					// ReSharper restore StringLiteralTypo
-					MaxArchiveFiles = 10,
-				};
-				var rule = new NLog.Config.LoggingRule("logToFile").Also(rule =>
-				{
-					rule.LoggerNamePattern = "*";
-					rule.SetLoggingLevels(
-						this.isDebugMode ? NLog.LogLevel.Trace : NLog.LogLevel.Debug,
-						NLog.LogLevel.Error
-					);
-					rule.Targets.Add(fileTarget);
-				});
-				it.AddTarget(fileTarget);
-				it.LoggingRules.Add(rule);
+					try
+					{
+						var config = (NLog.Config.LoggingConfiguration)s!;
+						var fileTarget = new NLog.Targets.FileTarget("file")
+						{
+							ArchiveAboveSize = 10L << 20, // 10 MB per log file
+							ArchiveFileKind = NLog.Targets.FilePathKind.Absolute,
+							ArchiveFileName = Path.Combine(this.RootPrivateDirectoryPath, "Log", "log.txt"),
+							ArchiveNumbering = NLog.Targets.ArchiveNumberingMode.Sequence,
+							FileName = Path.Combine(this.RootPrivateDirectoryPath, "Log", "log.txt"),
+							// ReSharper disable StringLiteralTypo
+							Layout = "${longdate} ${pad:padding=-5:inner=${processid}} ${pad:padding=-4:inner=${threadid}} ${pad:padding=-5:inner=${level:uppercase=true}} ${logger:shortName=true}: ${message} ${exception:format=tostring}",
+							// ReSharper restore StringLiteralTypo
+							MaxArchiveFiles = 10,
+						};
+						var rule = new NLog.Config.LoggingRule("logToFile").Also(rule =>
+						{
+							rule.LoggerNamePattern = "*";
+							rule.SetLoggingLevels(
+								this.isDebugMode ? NLog.LogLevel.Trace : NLog.LogLevel.Debug,
+								NLog.LogLevel.Error
+							);
+							rule.Targets.Add(fileTarget);
+						});
+						config.AddTarget(fileTarget);
+						config.LoggingRules.Add(rule);
+						LogManager.ReconfigExistingLoggers();
+					}
+					finally
+					{
+						this.isLoggerReadyEvent.Set();
+					}
+				}, it);
 			});
 
 			// create logger
@@ -139,7 +171,7 @@ namespace CarinaStudio.AutoUpdater
 				return;
 
 			// set environment variable
-			Environment.SetEnvironmentVariable("AVALONIA_GLOBAL_SCALE_FACTOR", factor.ToString());
+			Environment.SetEnvironmentVariable("AVALONIA_GLOBAL_SCALE_FACTOR", factor.ToString(CultureInfo.InvariantCulture));
 		}
 
 
@@ -654,6 +686,24 @@ namespace CarinaStudio.AutoUpdater
 				this.logger.LogError(ex, "Unable to start application '{appExePath}'", this.appExePath);
 				return false;
 			}
+		}
+
+
+		// Wait for logger configuration ready.
+		internal Task WaitForLoggerReadyAsync(CancellationToken cancellationToken = default)
+		{
+			if (this.isLoggerReadyEvent.Wait(0))
+				return Task.CompletedTask;
+			return Task.Run(() =>
+			{
+				while (true)
+				{
+					if (cancellationToken.IsCancellationRequested)
+						throw new TaskCanceledException();
+					if (this.isLoggerReadyEvent.Wait(1000))
+						break;
+				}
+			}, cancellationToken);
 		}
 
 

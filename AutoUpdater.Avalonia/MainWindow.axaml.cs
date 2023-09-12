@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using CarinaStudio.Threading;
 using CarinaStudio.Windows.Input;
@@ -63,10 +62,13 @@ class MainWindow : Window
 
 
 	// Window opened.
-	protected override void OnOpened(EventArgs e)
+	protected override async void OnOpened(EventArgs e)
 	{
 		// call base
 		base.OnOpened(e);
+
+		// wait for logger configuration
+		await ((App)App.Current).WaitForLoggerReadyAsync();
 
 		// start updating
 		if (this.DataContext is ViewModels.UpdatingSession session)
