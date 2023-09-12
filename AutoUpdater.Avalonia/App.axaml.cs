@@ -354,7 +354,7 @@ namespace CarinaStudio.AutoUpdater
 
 			// load styles
 			this.Styles.Add(new FluentTheme());
-			this.Resources["Brush/Window.Background"] = new SolidColorBrush(this.darkMode ? Color.Parse("#1e1e1e") : Color.Parse("#f0f0f0"));
+			this.Resources["Brush/Window.Background"] = new SolidColorBrush(this.darkMode ? Color.Parse("#202020") : Color.Parse("#f0f0f0"));
 			if (this.darkMode)
             {
 				var borderBrush = new LinearGradientBrush().Also(it =>
