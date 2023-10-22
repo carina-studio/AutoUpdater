@@ -9,6 +9,7 @@ using Avalonia.Themes.Fluent;
 using CarinaStudio.AutoUpdater.ViewModels;
 using CarinaStudio.Configuration;
 using CarinaStudio.MacOS.AppKit;
+using CarinaStudio.MacOS.CoreGraphics;
 using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System;
@@ -19,6 +20,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NLog;
+using SkiaSharp;
+using System.Runtime.InteropServices;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace CarinaStudio.AutoUpdater
@@ -52,9 +55,20 @@ namespace CarinaStudio.AutoUpdater
 #endif
 		readonly ManualResetEventSlim isLoggerReadyEvent = new(false);
 		readonly ILogger logger;
+		NSDockTile? macOSAppDockTile;
+		SKBitmap? macOSAppDockTileOverlayBitmap;
+		byte[]? macOSAppDockTileOverlayBitmapBuffer;
+		GCHandle macOSAppDockTileOverlayBitmapBufferHandle;
+		CGDataProvider? macOSAppDockTileOverlayBitmapBufferProvider;
+		CGImage? macOSAppDockTileOverlayCGImage;
+		NSImageView? macOSAppDockTileOverlayImageView;
+		NSImage? macOSAppDockTileOverlayNSImage;
 		Uri? packageManifestUri;
 		int? processIdToWaitFor;
 		bool selfContainedPackageOnly;
+		double taskBarProgress;
+		TaskbarIconProgressState taskBarProgressState = TaskbarIconProgressState.None;
+		ScheduledAction? updateMacOSAppDockTileProgressAction;
 		UpdatingSession? updatingSession;
 
 
@@ -366,6 +380,9 @@ namespace CarinaStudio.AutoUpdater
 				this.SynchronizationContext.Post(() => desktopLifetime.Shutdown(EXIT_CODE_INVALID_ARGUMENT));
 				return;
 			}
+			
+			// setup actions
+			this.updateMacOSAppDockTileProgressAction = new(this.UpdateMacOSAppDockTileProgress);
 
 			// load strings
 			var cultureName = cultureInfo.Name;
@@ -638,6 +655,60 @@ namespace CarinaStudio.AutoUpdater
 			}
 			return true;
 		}
+		
+		
+		// Perform necessary setup for dock tile on macOS.
+		void SetupMacOSAppDockTile()
+		{
+			// check state
+			if (Platform.IsNotMacOS || this.macOSAppDockTile != null)
+				return;
+
+			// get application
+			var app = NSApplication.Shared;
+
+			// create NSView for dock tile
+			var dockTileSize = default(Size);
+			this.macOSAppDockTile = app.DockTile.Also(dockTile =>
+			{
+				// prepare icon
+				var iconImage = app.ApplicationIconImage;
+				if (Path.GetFileName(Process.GetCurrentProcess().MainModule?.FileName) == "dotnet")
+				{
+					using var stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("CarinaStudio.AppSuite.Resources.AppIcon_macOS_256.png");
+					if (stream != null)
+						iconImage = NSImage.FromStream(stream);
+				}
+				
+				// setup dock tile
+				dockTileSize = dockTile.Size.Let(it => new Size(it.Width, it.Height));
+				dockTile.ContentView = new NSImageView(new(0, 0, dockTileSize.Width, dockTileSize.Height)).Also(imageView =>
+				{
+					imageView.Image = iconImage;
+					imageView.ImageAlignment = NSImageAlignment.Bottom;
+					imageView.ImageScaling = NSImageScaling.ProportionallyUpOrDown;
+					this.macOSAppDockTileOverlayImageView = new(new(0, 0, dockTileSize.Width, dockTileSize.Height));
+					imageView.AddSubView(this.macOSAppDockTileOverlayImageView);
+				});
+				dockTile.Display();
+			});
+
+			// create overlay bitmap
+			this.macOSAppDockTileOverlayBitmap = new(
+				(int)dockTileSize.Width,
+				(int)dockTileSize.Height
+			);
+			this.macOSAppDockTileOverlayBitmapBuffer = new byte[this.macOSAppDockTileOverlayBitmap.ByteCount];
+			this.macOSAppDockTileOverlayBitmapBufferHandle = GCHandle.Alloc(this.macOSAppDockTileOverlayBitmapBuffer, GCHandleType.Pinned);
+			this.macOSAppDockTileOverlayBitmap.InstallPixels(new(
+				this.macOSAppDockTileOverlayBitmap.Width,
+				this.macOSAppDockTileOverlayBitmap.Height,
+				SKColorType.Rgba8888,
+				SKAlphaType.Unpremul,
+				SKColorSpace.CreateSrgb()
+			), this.macOSAppDockTileOverlayBitmapBufferHandle.AddrOfPinnedObject());
+			this.macOSAppDockTileOverlayBitmapBufferProvider = new(this.macOSAppDockTileOverlayBitmapBuffer);
+		}
 
 
 		/// <summary>
@@ -693,6 +764,135 @@ namespace CarinaStudio.AutoUpdater
 				this.logger.LogError(ex, "Unable to start application '{appExePath}'", this.appExePath);
 				return false;
 			}
+		}
+		
+		
+		// Update dock tile on macOS.
+		void UpdateMacOSAppDockTileProgress()
+		{
+			this.SetupMacOSAppDockTile();
+			switch (this.taskBarProgressState)
+			{
+				case TaskbarIconProgressState.Indeterminate:
+					// Unsupported
+					goto default;
+				case TaskbarIconProgressState.Normal:
+				case TaskbarIconProgressState.Error:
+				case TaskbarIconProgressState.Paused:
+					// update overlay bitmap
+					new SKCanvas(this.macOSAppDockTileOverlayBitmap).Use(canvas =>
+					{
+						// get info of dock tile
+						var dockTileWidth = this.macOSAppDockTileOverlayBitmap!.Width;
+						var dockTileHeight = this.macOSAppDockTileOverlayBitmap.Height;
+						var progressBackgroundColor = Colors.Black;
+						var progressForegroundColor = this.taskBarProgressState switch
+						{
+							TaskbarIconProgressState.Error => Colors.Red,
+							TaskbarIconProgressState.Paused => Colors.Yellow,
+							_ => Colors.LightGray,
+						};
+
+						// prepare progress background
+						using var progressBackgroundPaint = new SKPaint
+						{
+							Color = new(progressBackgroundColor.R, progressBackgroundColor.G, progressBackgroundColor.B, progressBackgroundColor.A),
+							IsAntialias = true,
+							Style = SKPaintStyle.Fill,
+						};
+						var progressBackgroundWidth = (int)(dockTileWidth * 0.65 + 0.5);
+						var progressBackgroundHeight = (int)(dockTileHeight * 0.1 + 0.5);
+						var progressBackgroundLeft = (dockTileWidth - progressBackgroundWidth) >> 1;
+						var progressBackgroundTop = (int)(dockTileHeight * 0.7 + 0.5);
+						var progressBackgroundRect = new SKRect(progressBackgroundLeft, progressBackgroundTop, progressBackgroundLeft + progressBackgroundWidth, progressBackgroundTop + progressBackgroundHeight);
+
+						// prepare progress foreground
+						using var progressForegroundPaint = new SKPaint
+						{
+							Color = new(progressForegroundColor.R, progressForegroundColor.G, progressForegroundColor.B, progressForegroundColor.A),
+							IsAntialias = true,
+							Style = SKPaintStyle.Fill,
+						};
+						var progressBorderWidth = (int)(progressBackgroundHeight * 0.15 + 0.5);
+						var progressForegroundWidth = (int)((progressBackgroundWidth - progressBorderWidth - progressBorderWidth) * this.taskBarProgress + 0.5);
+						var progressForegroundHeight = progressBackgroundHeight - progressBorderWidth - progressBorderWidth;
+						var progressForegroundLeft = progressBackgroundLeft + progressBorderWidth;
+						var progressForegroundTop = progressBackgroundTop + progressBorderWidth;
+						var progressForegroundRect = new SKRect(progressForegroundLeft, progressForegroundTop, progressForegroundLeft + progressForegroundWidth, progressForegroundTop + progressForegroundHeight);
+
+						// clear buffer
+						canvas.Clear(new(0, 0, 0, 0));
+
+						// draw progress
+						if (this.taskBarProgress >= 0.001)
+						{
+							canvas.DrawRoundRect(new(progressBackgroundRect, progressBackgroundHeight / 2f), progressBackgroundPaint);
+							canvas.DrawRoundRect(new(progressForegroundRect, progressForegroundHeight / 2f), progressForegroundPaint);
+						}
+
+						// draw dot on top-right
+						if (this.taskBarProgressState != TaskbarIconProgressState.Normal)
+						{
+							var centerX = (int)(dockTileWidth * 0.87 + 0.5);
+							var centerY = (int)(dockTileHeight * 0.13 + 0.5);
+							var radius = (int)(dockTileWidth * 0.1 + 0.5);
+							var borderWidth = (int)(dockTileWidth * 0.015 + 0.5);
+							canvas.DrawCircle(centerX, centerY, radius + borderWidth, progressBackgroundPaint);
+							canvas.DrawCircle(centerX, centerY, radius, progressForegroundPaint);
+						}
+					});
+
+					// create new image for overlay
+					this.macOSAppDockTileOverlayImageView!.Image = null;
+					this.macOSAppDockTileOverlayNSImage?.Release();
+					this.macOSAppDockTileOverlayCGImage?.Release();
+					this.macOSAppDockTileOverlayCGImage = new CGImage(
+						this.macOSAppDockTileOverlayBitmap!.Width,
+						this.macOSAppDockTileOverlayBitmap.Height,
+						CGImagePixelFormatInfo.Packed,
+						8,
+						CGImageByteOrderInfo.ByteOrderDefault,
+						this.macOSAppDockTileOverlayBitmap.RowBytes,
+						CGImageAlphaInfo.AlphaLast,
+						this.macOSAppDockTileOverlayBitmapBufferProvider!,
+						CGColorSpace.SRGB
+					);
+
+					// show overlay image
+					this.macOSAppDockTileOverlayNSImage = NSImage.FromCGImage(this.macOSAppDockTileOverlayCGImage);
+					this.macOSAppDockTileOverlayImageView!.Image = this.macOSAppDockTileOverlayNSImage;
+					break;
+				default:
+					if (this.macOSAppDockTileOverlayNSImage != null)
+					{
+						this.macOSAppDockTileOverlayImageView!.Image = null;
+						this.macOSAppDockTileOverlayNSImage.Release();
+						this.macOSAppDockTileOverlayNSImage = null;
+					}
+					if (this.macOSAppDockTileOverlayCGImage != null)
+					{
+						this.macOSAppDockTileOverlayCGImage.Release();
+						this.macOSAppDockTileOverlayCGImage = null;
+					}
+					this.macOSAppDockTile?.Let(it =>
+						it.BadgeLabel = null);
+					break;
+			}
+			this.macOSAppDockTile?.Display();
+			this.SynchronizationContext.PostDelayed(() => // [Workaround] Make sure that dock tile redraws as expected
+				this.macOSAppDockTile?.Display(), 100);
+		}
+
+
+		// Update progress and state of task bar icon.
+		public void UpdateTaskBarProgress(Avalonia.Controls.Window window, TaskbarIconProgressState state, double progress)
+		{
+			this.taskBarProgress = progress;
+			this.taskBarProgressState = state;
+			if (Platform.IsWindows)
+				;
+			else if (Platform.IsMacOS)
+				this.updateMacOSAppDockTileProgressAction?.Schedule();
 		}
 
 

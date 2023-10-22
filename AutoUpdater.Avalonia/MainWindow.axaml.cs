@@ -117,18 +117,54 @@ class MainWindow : Window
 	// Called when property of session changed.
 	void OnSessionPropertyChanged(object? sender, PropertyChangedEventArgs e)
 	{
-		if (e.PropertyName == nameof(ViewModels.UpdatingSession.IsUpdatingCompleted))
+		if (this.DataContext is not ViewModels.UpdatingSession session)
+			return;
+		var app = (App)App.Current;
+		switch (e.PropertyName)
 		{
-			this.synchronizationContext.Post(() =>
-			{
-				if (this.DataContext is ViewModels.UpdatingSession session 
-					&& session.IsUpdatingSucceeded
-					&& ((App)App.Current).IsAppExecutableSpecified)
+			case nameof(ViewModels.UpdatingSession.IsDownloadingPackage):
+				if (session.IsDownloadingPackage)
+					app.UpdateTaskBarProgress(this, TaskbarIconProgressState.Normal, 0);
+				break;
+			
+			case nameof(ViewModels.UpdatingSession.IsInstallingPackage):
+				if (session.IsInstallingPackage)
+					app.UpdateTaskBarProgress(this, TaskbarIconProgressState.Normal, 0.5);
+				break;
+			
+			case nameof(ViewModels.UpdatingSession.IsWaitingForProcess):
+				if (session.IsWaitingForProcess)
+					app.UpdateTaskBarProgress(this, TaskbarIconProgressState.Indeterminate, 0);
+				break;
+			
+			case nameof(ViewModels.UpdatingSession.IsUpdatingCompleted):
+				this.synchronizationContext.Post(() =>
 				{
-					this.logger.LogWarning("Updating completed, close window to start application");
-					this.Close();
+					if (session.IsUpdatingSucceeded)
+					{
+						app.UpdateTaskBarProgress(this, TaskbarIconProgressState.None, 0);
+						if (app.IsAppExecutableSpecified)
+						{
+							this.logger.LogWarning("Updating completed, close window to start application");
+							this.Close();
+						}
+					}
+					else if (session.IsUpdatingCancelled)
+						app.UpdateTaskBarProgress(this, TaskbarIconProgressState.None, 0);
+					else
+						app.UpdateTaskBarProgress(this, TaskbarIconProgressState.Error, 1);
+				});
+				break;
+			
+			case nameof(ViewModels.UpdatingSession.ProgressPercentage):
+				if (session.IsProgressAvailable)
+				{
+					if (session.IsDownloadingPackage)
+						app.UpdateTaskBarProgress(this, TaskbarIconProgressState.Normal, session.ProgressPercentage / 200);
+					else if (session.IsInstallingPackage)
+						app.UpdateTaskBarProgress(this, TaskbarIconProgressState.Normal, 0.5 + session.ProgressPercentage / 200);
 				}
-			});
+				break;
 		}
 	}
 }
