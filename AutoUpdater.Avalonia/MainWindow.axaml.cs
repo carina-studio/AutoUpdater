@@ -68,9 +68,11 @@ class MainWindow : Window
 		base.OnOpened(e);
 
 		// wait for logger configuration
-		await ((App)App.Current).WaitForLoggerReadyAsync();
+		var app = (App)App.Current;
+		await app.WaitForLoggerReadyAsync();
 
 		// start updating
+		app.UpdateTaskBarProgress(this, TaskbarIconProgressState.Indeterminate, 0);
 		if (this.DataContext is ViewModels.UpdatingSession session)
 		{
 			this.synchronizationContext.PostDelayed(async () =>

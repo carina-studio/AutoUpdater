@@ -14,6 +14,7 @@ using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -70,6 +71,7 @@ namespace CarinaStudio.AutoUpdater
 		TaskbarIconProgressState taskBarProgressState = TaskbarIconProgressState.None;
 		ScheduledAction? updateMacOSAppDockTileProgressAction;
 		UpdatingSession? updatingSession;
+		Win32.ITaskbarList3? windowsTaskbarList;
 
 
 		/// <summary>
@@ -711,6 +713,30 @@ namespace CarinaStudio.AutoUpdater
 		}
 
 
+		// Setup related objects for taskbar.
+		[MemberNotNullWhen(true, nameof(windowsTaskbarList))]
+		bool SetupWindowsTaskbarList()
+		{
+			if (this.windowsTaskbarList != null)
+				return true;
+			Win32.CoInitialize();
+			var result = Win32.CoCreateInstance(in Win32.CLSID_TaskBarList, null, Win32.CLSCTX.INPROC_SERVER, in Win32.IID_TaskBarList3, out var obj);
+			if (obj == null)
+			{
+				this.logger.LogError("Unable to create ITaskBarList3 object, result: {result}", result);
+				return false;
+			}
+			this.windowsTaskbarList = obj as Win32.ITaskbarList3;
+			if (this.windowsTaskbarList == null)
+			{
+				this.logger.LogError("Unable to get implementation of ITaskBarList3");
+				return false;
+			}
+			this.windowsTaskbarList.HrInit();
+			return true;
+		}
+
+
 		/// <summary>
 		/// Start application if available.
 		/// </summary>
@@ -890,7 +916,22 @@ namespace CarinaStudio.AutoUpdater
 			this.taskBarProgress = progress;
 			this.taskBarProgressState = state;
 			if (Platform.IsWindows)
-				;
+			{
+				if (!this.SetupWindowsTaskbarList())
+					return;
+				var hWnd = (window.TryGetPlatformHandle()?.Handle).GetValueOrDefault();
+				if (hWnd == default)
+					return;
+				this.windowsTaskbarList.SetProgressValue(hWnd, (ulong)(this.taskBarProgress * 1000 + 0.5), 1000UL);
+				this.windowsTaskbarList.SetProgressState(hWnd, this.taskBarProgressState switch
+				{
+					TaskbarIconProgressState.Error => Win32.TBPF.ERROR,
+					TaskbarIconProgressState.Indeterminate => Win32.TBPF.INDETERMINATE,
+					TaskbarIconProgressState.Normal => Win32.TBPF.NORMAL,
+					TaskbarIconProgressState.Paused => Win32.TBPF.PAUSED,
+					_ => Win32.TBPF.NOPROGRESS,
+				});
+			}
 			else if (Platform.IsMacOS)
 				this.updateMacOSAppDockTileProgressAction?.Schedule();
 		}

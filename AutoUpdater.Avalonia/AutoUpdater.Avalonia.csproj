@@ -8,6 +8,7 @@
     <DebugType>embedded</DebugType>
     <RootNamespace>CarinaStudio.AutoUpdater</RootNamespace>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <TrimMode>partial</TrimMode>
     <Authors>Carina Studio</Authors>
     <Company>Carina Studio</Company>
