@@ -8,6 +8,7 @@ using Avalonia.Styling;
 using Avalonia.Themes.Fluent;
 using CarinaStudio.AutoUpdater.ViewModels;
 using CarinaStudio.Configuration;
+using CarinaStudio.MacOS.AppKit;
 using CarinaStudio.Threading;
 using Microsoft.Extensions.Logging;
 using System;
@@ -340,6 +341,12 @@ namespace CarinaStudio.AutoUpdater
 			
 			// start application
 			app.StartApplication();
+			
+			// remove app icon from dock
+			if (Platform.IsMacOS)
+				NSApplication.Current?.SetActivationPolicy(NSApplication.ActivationPolicy.Accessory);
+			
+			// complete
 			app.logger.LogWarning("Complete");
 		}
 
