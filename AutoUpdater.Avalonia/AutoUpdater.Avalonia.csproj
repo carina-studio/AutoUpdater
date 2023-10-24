@@ -9,6 +9,7 @@
     <RootNamespace>CarinaStudio.AutoUpdater</RootNamespace>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <TrimMode>partial</TrimMode>
     <Authors>Carina Studio</Authors>
     <Company>Carina Studio</Company>
