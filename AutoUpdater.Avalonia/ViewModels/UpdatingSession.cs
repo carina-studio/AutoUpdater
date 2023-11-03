@@ -36,6 +36,8 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		{
 			this.updateMessageAction = new ScheduledAction(this.UpdateMessage);
 			this.updateMessageAction.Execute();
+			this.RefreshApplicationIconAutomatically = true;
+			this.RefreshApplicationIconMessage = app.GetString("UpdatingSession.RefreshApplicationIcon");
 		}
 
 
@@ -86,6 +88,7 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		{
 			base.OnPropertyChanged(property, oldValue, newValue);
 			if (property == DownloadedPackageSizeProperty
+			    || property == IsRefreshingApplicationIconProperty
 				|| property == IsUpdatingCancellingProperty
 				|| property == PackageSizeProperty)
 			{
@@ -173,6 +176,8 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 				else
 					this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.UpdatingSucceeded", appName));
 			}
+			else if (this.IsRefreshingApplicationIcon)
+				this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.RefreshingApplicationIcon"));
 			else
 			{
 				switch (this.UpdaterState)

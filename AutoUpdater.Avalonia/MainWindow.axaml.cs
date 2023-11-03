@@ -149,12 +149,14 @@ class MainWindow : Window
 						{
 							this.logger.LogWarning("Updating completed, close window to start application");
 							this.Close();
+							return;
 						}
 					}
 					else if (session.IsUpdatingCancelled)
 						app.UpdateTaskBarProgress(this, TaskbarIconProgressState.None, 0);
 					else
 						app.UpdateTaskBarProgress(this, TaskbarIconProgressState.Error, 1);
+					this.Activate();
 				});
 				break;
 			

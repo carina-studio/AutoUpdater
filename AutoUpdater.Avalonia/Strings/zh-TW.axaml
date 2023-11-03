@@ -17,6 +17,8 @@
 	<sys:String x:Key="String.UpdatingSession.InstallingPackage">正在更新 {0}…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.InstallingPackage.WithVersion">正在更新 {0} 至 {1}…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.Preparing">準備中…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.RefreshApplicationIcon">更新應用程式圖示</sys:String>
+	<sys:String x:Key="String.UpdatingSession.RefreshingApplicationIcon">正在更新應用程式圖示…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.RestoringApplication">正在復原 {0}…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.UpdatingCancelled">更新已經取消。</sys:String>
 	<sys:String x:Key="String.UpdatingSession.UpdatingFailed">無法成功更新 {0}。</sys:String>

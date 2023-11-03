@@ -17,6 +17,8 @@
 	<sys:String x:Key="String.UpdatingSession.InstallingPackage">Updating {0}…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.InstallingPackage.WithVersion">Updating {0} to {1}…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.Preparing">Preparing…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.RefreshApplicationIcon">Refresh application icon</sys:String>
+	<sys:String x:Key="String.UpdatingSession.RefreshingApplicationIcon">Refreshing application icon…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.RestoringApplication">Restoring {0}…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.UpdatingCancelled">Updating has been cancelled.</sys:String>
 	<sys:String x:Key="String.UpdatingSession.UpdatingFailed">Failed to update {0}.</sys:String>
