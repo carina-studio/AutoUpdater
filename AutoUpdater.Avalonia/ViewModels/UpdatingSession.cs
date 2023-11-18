@@ -21,6 +21,7 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 	class UpdatingSession : AutoUpdate.ViewModels.UpdatingSession
 	{
 		// Fields.
+		bool isAppIconRefreshed;
 		Uri? packageManifestUri;
 		string? processExecutableToWaitFor;
 		int? processIdToWaitFor;
@@ -88,10 +89,15 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		{
 			base.OnPropertyChanged(property, oldValue, newValue);
 			if (property == DownloadedPackageSizeProperty
-			    || property == IsRefreshingApplicationIconProperty
 				|| property == IsUpdatingCancellingProperty
 				|| property == PackageSizeProperty)
 			{
+				this.updateMessageAction.Schedule();
+			}
+			else if (property == IsRefreshingApplicationIconProperty)
+			{
+				if (this.IsRefreshingApplicationIcon)
+					this.isAppIconRefreshed = true;
 				this.updateMessageAction.Schedule();
 			}
 		}
@@ -173,6 +179,8 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 					this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.UpdatingCancelled"));
 				else if (this.IsUpdatingFailed)
 					this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.UpdatingFailed", appName));
+				else if (this.isAppIconRefreshed && Platform.IsMacOS)
+					this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.UpdatingSucceeded.WithAppIconRefreshed.MacOS", appName));
 				else
 					this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.UpdatingSucceeded", appName));
 			}

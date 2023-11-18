@@ -18,6 +18,7 @@ namespace CarinaStudio.AutoUpdater;
 class MainWindow : Window
 {
 	// Fields.
+	bool isAppIconRefreshed;
 	readonly ILogger logger;
 	readonly SynchronizationContext synchronizationContext = SynchronizationContext.Current.AsNonNull();
 
@@ -134,6 +135,10 @@ class MainWindow : Window
 					app.UpdateTaskBarProgress(this, TaskbarIconProgressState.Normal, 0.5);
 				break;
 			
+			case nameof(ViewModels.UpdatingSession.IsRefreshingApplicationIcon):
+				this.isAppIconRefreshed = true;
+				break;
+			
 			case nameof(ViewModels.UpdatingSession.IsWaitingForProcess):
 				if (session.IsWaitingForProcess)
 					app.UpdateTaskBarProgress(this, TaskbarIconProgressState.Indeterminate, 0);
@@ -145,7 +150,7 @@ class MainWindow : Window
 					if (session.IsUpdatingSucceeded)
 					{
 						app.UpdateTaskBarProgress(this, TaskbarIconProgressState.None, 0);
-						if (app.IsAppExecutableSpecified)
+						if (app.IsAppExecutableSpecified && (!this.isAppIconRefreshed || Platform.IsNotMacOS))
 						{
 							this.logger.LogWarning("Updating completed, close window to start application");
 							this.Close();

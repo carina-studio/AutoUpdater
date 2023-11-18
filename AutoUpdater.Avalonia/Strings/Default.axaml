@@ -23,6 +23,7 @@
 	<sys:String x:Key="String.UpdatingSession.UpdatingCancelled">Updating has been cancelled.</sys:String>
 	<sys:String x:Key="String.UpdatingSession.UpdatingFailed">Failed to update {0}.</sys:String>
 	<sys:String x:Key="String.UpdatingSession.UpdatingSucceeded">Complete updating {0}.</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingSucceeded.WithAppIconRefreshed.MacOS">Complete updating {0}. You may need to restart your computer to complete updating application icon.</sys:String>
 	<sys:String x:Key="String.UpdatingSession.VerifyingPackage">Verifying downloaded update package…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.WaitingForProcess">Waiting for closing {0}…</sys:String>
     
