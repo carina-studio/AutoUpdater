@@ -3,7 +3,7 @@
 set APP_NAME=AutoUpdater.Avalonia
 set RID_LIST=linux-arm64 linux-x64
 set CONFIG=Release
-set FRAMEWORK=net7.0
+set FRAMEWORK=net8.0
 set SELF_CONTAINED=true
 set TRIM_ASSEMBLIES=true
 set READY_TO_RUN=false
@@ -89,7 +89,7 @@ REM Build packages
 ))
 
 REM Generate package manifest
-dotnet run --project PackagingTool create-package-manifest linux %APP_NAME% %CURRENT_VERSION%
+REM dotnet run --project PackagingTool create-package-manifest linux %APP_NAME% %CURRENT_VERSION%
 
 REM Complete
 del /Q Packages\Packaging.txt
