@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <AssemblyVersion>2.0.12.1118</AssemblyVersion>
-    <Version>2.0.12.1118</Version>
+    <AssemblyVersion>2.0.13.229</AssemblyVersion>
+    <Version>2.0.13.229</Version>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
