@@ -182,7 +182,7 @@ namespace CarinaStudio.AutoUpdater
 		static void ApplyScreenScaleFactor(double factor)
 		{
 			// check state
-			if (!Platform.IsLinux || !double.IsFinite(factor) || factor < 1)
+			if (!Platform.IsLinux || Platform.LinuxDistribution == LinuxDistribution.Ubuntu || !double.IsFinite(factor) || factor < 1)
 				return;
 			if (Math.Abs(factor - 1) < 0.01)
 				return;
