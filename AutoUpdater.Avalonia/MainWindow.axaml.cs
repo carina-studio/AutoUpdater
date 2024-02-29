@@ -1,12 +1,14 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using CarinaStudio.AutoUpdater.ViewModels;
 using CarinaStudio.Threading;
 using CarinaStudio.Windows.Input;
 using Microsoft.Extensions.Logging;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,6 +28,7 @@ class MainWindow : Window
 	/// <summary>
 	/// Initialize new <see cref="MainWindow"/> instance.
 	/// </summary>
+	[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(UpdatingSession))]
 	public MainWindow()
 	{
 		AvaloniaXamlLoader.Load(this);
