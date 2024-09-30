@@ -168,10 +168,9 @@ namespace CarinaStudio.AutoUpdater
 			var cultureName = cultureInfo.Name;
 			if (cultureName.StartsWith("zh-"))
 			{
-				if (cultureName.EndsWith("TW"))
-					this.Name = "Carina Studio 應用程式更新";
-				else
-					this.Name = "Carina Studio 应用程序更新";
+				this.Name = cultureName.EndsWith("TW") 
+					? "Carina Studio 應用程式更新"
+					: "Carina Studio 应用程序更新";
 			}
 			else
 				this.Name = "Carina Studio Application Update";
@@ -392,10 +391,9 @@ namespace CarinaStudio.AutoUpdater
 			{
 				try
 				{
-					if (cultureName.EndsWith("TW"))
-						cultureName = "zh-TW";
-					else
-						cultureName = "zh-CN";
+					cultureName = cultureName.EndsWith("TW") 
+						? "zh-TW"
+						: "zh-CN";
 					var stringResources = new ResourceInclude(new Uri("avares://AutoUpdater.Avalonia/"))
 					{
 						Source = new Uri($"/Strings/{cultureName}.axaml", UriKind.Relative)
@@ -820,12 +818,12 @@ namespace CarinaStudio.AutoUpdater
 						};
 
 						// prepare progress background
-						using var progressBackgroundPaint = new SKPaint
+						using var progressBackgroundPaint = new SKPaint().Setup(it =>
 						{
-							Color = new(progressBackgroundColor.R, progressBackgroundColor.G, progressBackgroundColor.B, progressBackgroundColor.A),
-							IsAntialias = true,
-							Style = SKPaintStyle.Fill,
-						};
+							it.Color = new(progressBackgroundColor.R, progressBackgroundColor.G, progressBackgroundColor.B, progressBackgroundColor.A);
+							it.IsAntialias = true;
+							it.Style = SKPaintStyle.Fill;
+						});
 						var progressBackgroundWidth = (int)(dockTileWidth * 0.65 + 0.5);
 						var progressBackgroundHeight = (int)(dockTileHeight * 0.1 + 0.5);
 						var progressBackgroundLeft = (dockTileWidth - progressBackgroundWidth) >> 1;
@@ -833,12 +831,12 @@ namespace CarinaStudio.AutoUpdater
 						var progressBackgroundRect = new SKRect(progressBackgroundLeft, progressBackgroundTop, progressBackgroundLeft + progressBackgroundWidth, progressBackgroundTop + progressBackgroundHeight);
 
 						// prepare progress foreground
-						using var progressForegroundPaint = new SKPaint
+						using var progressForegroundPaint = new SKPaint().Setup(it =>
 						{
-							Color = new(progressForegroundColor.R, progressForegroundColor.G, progressForegroundColor.B, progressForegroundColor.A),
-							IsAntialias = true,
-							Style = SKPaintStyle.Fill,
-						};
+							it.Color = new(progressForegroundColor.R, progressForegroundColor.G, progressForegroundColor.B, progressForegroundColor.A);
+							it.IsAntialias = true;
+							it.Style = SKPaintStyle.Fill;
+						});
 						var progressBorderWidth = (int)(progressBackgroundHeight * 0.15 + 0.5);
 						var progressForegroundWidth = (int)((progressBackgroundWidth - progressBorderWidth - progressBorderWidth) * this.taskBarProgress + 0.5);
 						var progressForegroundHeight = progressBackgroundHeight - progressBorderWidth - progressBorderWidth;
