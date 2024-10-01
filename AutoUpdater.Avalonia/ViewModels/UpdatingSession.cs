@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,8 +21,20 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 	/// </summary>
 	class UpdatingSession : AutoUpdate.ViewModels.UpdatingSession
 	{
+		// Constants.
+		const string HttpRefererHeader = "Referer";
+		const string HttpUserAgentHeader = "User-Agent";
+		
+		
+		// Static fields.
+		static bool bypassCertificateValidation;
+		
+		
 		// Fields.
+		string? httpUserAgent;
 		bool isAppIconRefreshed;
+		string? packageRequestHttpReferer;
+		string? packageManifestRequestHttpReferer;
 		Uri? packageManifestUri;
 		string? processExecutableToWaitFor;
 		int? processIdToWaitFor;
@@ -39,6 +52,25 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 			this.updateMessageAction.Execute();
 			this.RefreshApplicationIconAutomatically = true;
 			this.RefreshApplicationIconMessage = app.GetString("UpdatingSession.RefreshApplicationIcon");
+		}
+		
+		
+		/// <summary>
+		/// Get or set whether certification validation can be bypassed or not.
+		/// </summary>
+		public static bool BypassCertificateValidation
+		{
+			get => bypassCertificateValidation;
+			set
+			{
+				if (bypassCertificateValidation == value)
+					return;
+				bypassCertificateValidation = value;
+				if (value)
+					ServicePointManager.ServerCertificateValidationCallback = (_, _, _, _) => true;
+				else
+					ServicePointManager.ServerCertificateValidationCallback = null;
+			}
 		}
 
 
@@ -76,6 +108,28 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 			this.processWaitingCancellationTokenSource?.Cancel();
 			base.Dispose(disposing);
 		}
+		
+		
+		/// <summary>
+		/// Get or set value of HTTP User-Agent used for sending request.
+		/// </summary>
+		public string? HttpUserAgent
+		{
+			get => this.httpUserAgent;
+			set
+			{
+				this.VerifyAccess();
+				this.VerifyDisposed();
+				if (this.IsUpdating || this.IsUpdatingCompleted)
+					throw new InvalidOperationException();
+				this.httpUserAgent = value;
+				this.SetupPackageManifestSource();
+				if (value is not null)
+					this.PackageRequestHeaders[HttpUserAgentHeader] = value;
+				else
+					this.PackageRequestHeaders.Remove(HttpUserAgentHeader);
+			}
+		}
 
 
 		/// <summary>
@@ -109,6 +163,24 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 			base.OnUpdaterStateChanged();
 			this.updateMessageAction.Schedule();
 		}
+		
+		
+		/// <summary>
+		/// Get or set HTTP referer used for sending request to get package manifest.
+		/// </summary>
+		public string? PackageManifestRequestHttpReferer
+		{
+			get => this.packageManifestRequestHttpReferer;
+			set
+			{
+				this.VerifyAccess();
+				this.VerifyDisposed();
+				if (this.IsUpdating || this.IsUpdatingCompleted)
+					throw new InvalidOperationException();
+				this.packageManifestRequestHttpReferer = value;
+				this.SetupPackageManifestSource();
+			}
+		}
 
 
 		/// <summary>
@@ -124,9 +196,28 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 				if (this.IsUpdating || this.IsUpdatingCompleted)
 					throw new InvalidOperationException();
 				this.packageManifestUri = value;
-				this.PackageManifestSource = value != null
-					? new WebRequestStreamProvider(value)
-					: null;
+				this.SetupPackageManifestSource();
+			}
+		}
+		
+		
+		/// <summary>
+		/// Get or set HTTP referer used for sending request to download package.
+		/// </summary>
+		public string? PackageRequestHttpReferer
+		{
+			get => this.packageRequestHttpReferer;
+			set
+			{
+				this.VerifyAccess();
+				this.VerifyDisposed();
+				if (this.IsUpdating || this.IsUpdatingCompleted)
+					throw new InvalidOperationException();
+				this.packageRequestHttpReferer = value;
+				if (value is not null)
+					this.PackageRequestHeaders[HttpRefererHeader] = value;
+				else
+					this.PackageRequestHeaders.Remove(HttpRefererHeader);
 			}
 		}
 
@@ -163,6 +254,25 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 				this.processIdToWaitFor = value;
 			}
 		}
+		
+		
+		// Setup source to get package manifest.
+		void SetupPackageManifestSource()
+		{
+			if (this.packageManifestUri is null)
+				this.PackageManifestSource = null;
+			else
+			{
+				var headers = new Dictionary<string, string>().Also(it =>
+				{
+					if (this.packageManifestRequestHttpReferer is not null)
+						it[HttpRefererHeader] = this.packageManifestRequestHttpReferer;
+					if (this.httpUserAgent is not null)
+						it[HttpUserAgentHeader] = this.httpUserAgent;
+				});
+				this.PackageManifestSource = new WebRequestStreamProvider(this.packageManifestUri, headers: headers);
+			}
+		}
 
 
 		// Update message according to current state.
@@ -197,6 +307,7 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 						{
 							var downloadSizeString = this.DownloadedPackageSize.ToFileSizeString();
 							var packageSize = this.PackageSize.GetValueOrDefault();
+							// ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
 							if (packageSize > 0)
 								this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.DownloadingPackage", $"{downloadSizeString} / {packageSize.ToFileSizeString()}"));
 							else
@@ -209,7 +320,8 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 					case UpdaterState.InstallingPackage:
 						{
 							var version = this.UpdatingVersion;
-							if (version != null)
+							// ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
+							if (version is not null)
 								this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.InstallingPackage.WithVersion", appName, version));
 							else
 								this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.InstallingPackage", appName));
@@ -241,7 +353,7 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 			// check state
 			this.VerifyAccess();
 			this.VerifyDisposed();
-			if (this.processIdToWaitFor == null && string.IsNullOrWhiteSpace(this.processExecutableToWaitFor))
+			if (this.processIdToWaitFor is null && string.IsNullOrWhiteSpace(this.processExecutableToWaitFor))
 				return;
 			if (this.IsWaitingForProcess)
 				throw new InvalidOperationException();

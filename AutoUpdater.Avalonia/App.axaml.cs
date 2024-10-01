@@ -47,7 +47,9 @@ namespace CarinaStudio.AutoUpdater
 		string? appExeArgs;
 		string? appExePath;
 		string? appName;
+		bool bypassCertificateValidation;
 		bool darkMode;
+		string? httpUserAgent;
 		bool isStartAppCalled;
 #if DEBUG
 		bool isDebugMode = true;
@@ -64,7 +66,9 @@ namespace CarinaStudio.AutoUpdater
 		CGImage? macOSAppDockTileOverlayCGImage;
 		NSImageView? macOSAppDockTileOverlayImageView;
 		NSImage? macOSAppDockTileOverlayNSImage;
+		string? packageManifestRequestHttpReferer;
 		Uri? packageManifestUri;
+		string? packageRequestHttpReferer;
 		int? processIdToWaitFor;
 		bool selfContainedPackageOnly;
 		double taskBarProgress;
@@ -95,7 +99,7 @@ namespace CarinaStudio.AutoUpdater
 					}
 				}
 				var mainModule = Process.GetCurrentProcess().MainModule;
-				if (mainModule != null && Path.GetFileNameWithoutExtension(mainModule.FileName) != "dotnet")
+				if (mainModule is not null && Path.GetFileNameWithoutExtension(mainModule.FileName) != "dotnet")
 					return Path.GetDirectoryName(mainModule.FileName) ?? "";
 				
 				// get path from assembly
@@ -103,7 +107,7 @@ namespace CarinaStudio.AutoUpdater
 				try
 				{
 					var codeBase = System.Reflection.Assembly.GetEntryAssembly()?.GetName().CodeBase;
-					if (codeBase != null && codeBase.StartsWith("file://") && codeBase.Length > 7)
+					if (codeBase is not null && codeBase.StartsWith("file://") && codeBase.Length > 7)
 					{
 						if (Platform.IsWindows)
 							return Path.GetDirectoryName(codeBase[8..].Replace('/', '\\')) ?? Environment.CurrentDirectory;
@@ -374,7 +378,7 @@ namespace CarinaStudio.AutoUpdater
 
 			// parse arguments
 			var desktopLifetime = (IClassicDesktopStyleApplicationLifetime?)this.ApplicationLifetime;
-			if (desktopLifetime == null)
+			if (desktopLifetime is null)
 				return;
 			if (!this.ParseArgs(desktopLifetime.Args ?? Array.Empty<string>()))
 			{
@@ -490,11 +494,19 @@ namespace CarinaStudio.AutoUpdater
 				ApplicationBaseVersion = this.appBaseVersion,
 				ApplicationDirectoryPath = this.appDirectoryPath,
 				ApplicationName = this.appName,
+				HttpUserAgent = this.httpUserAgent,
+				PackageManifestRequestHttpReferer = this.packageManifestRequestHttpReferer,
 				PackageManifestUri = this.packageManifestUri,
+				PackageRequestHttpReferer = this.packageRequestHttpReferer,
 				ProcessExecutableToWaitFor = this.appExePath,
 				ProcessIdToWaitFor = this.processIdToWaitFor,
 				SelfContainedPackageOnly = this.selfContainedPackageOnly,
 			};
+			if (this.bypassCertificateValidation)
+			{
+				this.logger.LogWarning("SSL certificate validation will be bypassed");
+				UpdatingSession.BypassCertificateValidation = true;
+			}
 
 			// show main window
 			this.SynchronizationContext.Post(() =>
@@ -534,6 +546,9 @@ namespace CarinaStudio.AutoUpdater
 						else
 							this.logger.LogError("No base application version specified");
 						break;
+					case "-bypass-cert-validation":
+						this.bypassCertificateValidation = true;
+						break;
 					case "-culture":
 						++i;
 						break;
@@ -546,7 +561,7 @@ namespace CarinaStudio.AutoUpdater
 					case "-directory":
 						if (i < argCount - 1)
 						{
-							if (this.appDirectoryPath == null)
+							if (this.appDirectoryPath is null)
 								this.appDirectoryPath = args[++i];
 							else
 							{
@@ -558,7 +573,7 @@ namespace CarinaStudio.AutoUpdater
 					case "-executable":
 						if (i < argCount - 1)
 						{
-							if (this.appExePath == null)
+							if (this.appExePath is null)
 								this.appExePath = args[++i];
 							else
 							{
@@ -570,7 +585,7 @@ namespace CarinaStudio.AutoUpdater
 					case "-executable-args":
 						if (i < argCount - 1)
 						{
-							if (this.appExeArgs == null)
+							if (this.appExeArgs is null)
 								this.appExeArgs = args[++i];
 							else
 							{
@@ -579,10 +594,27 @@ namespace CarinaStudio.AutoUpdater
 							}
 						}
 						break;
+					case "-http-user-agent":
+						if (i < argCount - 1)
+						{
+							if (this.httpUserAgent is null)
+								this.httpUserAgent = args[++i];
+							else
+							{
+								this.logger.LogError("Duplicate HTTP user agent specified");
+								return false;
+							}
+						}
+						else
+						{
+							this.logger.LogError("No HTTP user agent specified");
+							return false;
+						}
+						break;
 					case "-name":
 						if (i < argCount - 1)
 						{
-							if (this.appName == null)
+							if (this.appName is null)
 								this.appName = args[++i];
 							else
 							{
@@ -591,21 +623,55 @@ namespace CarinaStudio.AutoUpdater
 							}
 						}
 						break;
+					case "-package-http-referer":
+						if (i < argCount - 1)
+						{
+							if (this.packageRequestHttpReferer is null)
+								this.packageRequestHttpReferer = args[++i];
+							else
+							{
+								this.logger.LogError("Duplicate HTTP referer for package request specified");
+								return false;
+							}
+						}
+						else
+						{
+							this.logger.LogError("No HTTP referer for package request specified");
+							return false;
+						}
+						break;
 					case "-package-manifest":
 						if (i < argCount - 1)
 						{
-							if (this.packageManifestUri != null)
+							if (this.packageManifestUri is not null)
 							{
 								this.logger.LogError("Duplicate package manifest URI specified");
 								return false;
 							}
-							else if (Uri.TryCreate(args[++i], UriKind.Absolute, out var uri))
+							if (Uri.TryCreate(args[++i], UriKind.Absolute, out var uri))
 								this.packageManifestUri = uri;
 							else
 							{
 								this.logger.LogError("Invalid package manifest URI: {arg}", args[i]);
 								return false;
 							}
+						}
+						break;
+					case "-package-manifest-http-referer":
+						if (i < argCount - 1)
+						{
+							if (this.packageManifestRequestHttpReferer is null)
+								this.packageManifestRequestHttpReferer = args[++i];
+							else
+							{
+								this.logger.LogError("Duplicate HTTP referer for package manifest request specified");
+								return false;
+							}
+						}
+						else
+						{
+							this.logger.LogError("No HTTP referer for package manifest request specified");
+							return false;
 						}
 						break;
 					case "-screen-scale-factor":
@@ -615,10 +681,14 @@ namespace CarinaStudio.AutoUpdater
 					case "-self-contained-only":
 						this.selfContainedPackageOnly = true;
 						break;
+					case "-updater-name":
+						if (i < argCount - 1)
+							this.Name = args[++i];
+						break;
 					case "-wait-for-process":
 						if (i < argCount - 1)
 						{
-							if (this.processIdToWaitFor != null)
+							if (this.processIdToWaitFor is not null)
 							{
 								this.logger.LogError("Duplicate process ID specified");
 								return false;
@@ -639,12 +709,12 @@ namespace CarinaStudio.AutoUpdater
 				this.logger.LogError("No application directory specified");
 				return false;
 			}
-			if (this.packageManifestUri == null)
+			if (this.packageManifestUri is null)
 			{
 				this.logger.LogError("No package manifest URI specified");
 				return false;
 			}
-			if (this.appExePath != null)
+			if (this.appExePath is not null)
 			{
 				this.appExePath = Path.DirectorySeparatorChar switch
 				{
@@ -653,6 +723,10 @@ namespace CarinaStudio.AutoUpdater
 					_ => this.appExePath,
 				};
 			}
+			if (this.packageManifestRequestHttpReferer is not null)
+				this.logger.LogDebug("HTTP referer for package manifest request set");
+			if (this.packageRequestHttpReferer is not null)
+				this.logger.LogDebug("HTTP referer for package request set");
 			return true;
 		}
 		
@@ -661,7 +735,7 @@ namespace CarinaStudio.AutoUpdater
 		void SetupMacOSAppDockTile()
 		{
 			// check state
-			if (Platform.IsNotMacOS || this.macOSAppDockTile != null)
+			if (Platform.IsNotMacOS || this.macOSAppDockTile is not null)
 				return;
 
 			// get application
@@ -676,7 +750,7 @@ namespace CarinaStudio.AutoUpdater
 				if (Path.GetFileName(Process.GetCurrentProcess().MainModule?.FileName) == "dotnet")
 				{
 					using var stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("CarinaStudio.AppSuite.Resources.AppIcon_macOS_256.png");
-					if (stream != null)
+					if (stream is not null)
 						iconImage = NSImage.FromStream(stream);
 				}
 				
@@ -715,17 +789,17 @@ namespace CarinaStudio.AutoUpdater
 		[MemberNotNullWhen(true, nameof(windowsTaskbarList))]
 		bool SetupWindowsTaskbarList()
 		{
-			if (this.windowsTaskbarList != null)
+			if (this.windowsTaskbarList is not null)
 				return true;
 			Win32.CoInitialize();
 			var result = Win32.CoCreateInstance(in Win32.CLSID_TaskBarList, null, Win32.CLSCTX.INPROC_SERVER, in Win32.IID_TaskBarList3, out var obj);
-			if (obj == null)
+			if (obj is null)
 			{
 				this.logger.LogError("Unable to create ITaskBarList3 object, result: {result}", result);
 				return false;
 			}
 			this.windowsTaskbarList = obj as Win32.ITaskbarList3;
-			if (this.windowsTaskbarList == null)
+			if (this.windowsTaskbarList is null)
 			{
 				this.logger.LogError("Unable to get implementation of ITaskBarList3");
 				return false;
@@ -887,13 +961,13 @@ namespace CarinaStudio.AutoUpdater
 					this.macOSAppDockTileOverlayImageView!.Image = this.macOSAppDockTileOverlayNSImage;
 					break;
 				default:
-					if (this.macOSAppDockTileOverlayNSImage != null)
+					if (this.macOSAppDockTileOverlayNSImage is not null)
 					{
 						this.macOSAppDockTileOverlayImageView!.Image = null;
 						this.macOSAppDockTileOverlayNSImage.Release();
 						this.macOSAppDockTileOverlayNSImage = null;
 					}
-					if (this.macOSAppDockTileOverlayCGImage != null)
+					if (this.macOSAppDockTileOverlayCGImage is not null)
 					{
 						this.macOSAppDockTileOverlayCGImage.Release();
 						this.macOSAppDockTileOverlayCGImage = null;
