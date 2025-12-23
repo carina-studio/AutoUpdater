@@ -8,6 +8,7 @@ using Avalonia.Styling;
 using Avalonia.Themes.Fluent;
 using CarinaStudio.AutoUpdater.ViewModels;
 using CarinaStudio.Configuration;
+using CarinaStudio.Logging;
 using CarinaStudio.MacOS.AppKit;
 using CarinaStudio.MacOS.CoreGraphics;
 using CarinaStudio.Threading;
@@ -90,7 +91,7 @@ namespace CarinaStudio.AutoUpdater
 				if (Platform.IsWindows)
 				{
 					var fileNameBuffer = new StringBuilder(256);
-					var size = Win32.GetModuleFileName(default, fileNameBuffer, (uint)fileNameBuffer.Capacity);
+					var size = Win32.GetModuleFileName(IntPtr.Zero, fileNameBuffer, (uint)fileNameBuffer.Capacity);
 					if (size <= fileNameBuffer.Capacity)
 					{
 						var fileName = fileNameBuffer.ToString();
@@ -133,9 +134,8 @@ namespace CarinaStudio.AutoUpdater
 						var fileTarget = new NLog.Targets.FileTarget("file")
 						{
 							ArchiveAboveSize = 10L << 20, // 10 MB per log file
-							ArchiveFileKind = NLog.Targets.FilePathKind.Absolute,
 							ArchiveFileName = Path.Combine(this.RootPrivateDirectoryPath, "Log", "log.txt"),
-							ArchiveNumbering = NLog.Targets.ArchiveNumberingMode.Sequence,
+							ArchiveSuffixFormat = "{0:00}",
 							FileName = Path.Combine(this.RootPrivateDirectoryPath, "Log", "log.txt"),
 							// ReSharper disable StringLiteralTypo
 							Layout = "${longdate} ${pad:padding=-5:inner=${processid}} ${pad:padding=-4:inner=${threadid}} ${pad:padding=-5:inner=${level:uppercase=true}} ${logger:shortName=true}: ${message} ${exception:format=tostring}",
@@ -243,8 +243,7 @@ namespace CarinaStudio.AutoUpdater
 			}
 
 			// start updating
-			var cjkUnicodeRanges = new UnicodeRange(new UnicodeRangeSegment[]
-			{
+			var cjkUnicodeRanges = new UnicodeRange([
 				// ReSharper disable CommentTypo
 				new(0x2e80, 0x2eff), // CJKRadicalsSupplement
 				new(0x3000, 0x303f), // CJKSymbolsandPunctuation
@@ -253,7 +252,7 @@ namespace CarinaStudio.AutoUpdater
 				new(0xf900, 0xfaff), // CJKCompatibilityIdeographs
 				new(0xfe30, 0xfe4f), // CJKCompatibilityForms
 				// ReSharper restore CommentTypo
-			});
+			]);
 			AppBuilder.Configure<App>()
 				.UsePlatformDetect()
 				.LogToTrace().Also(it =>
@@ -269,8 +268,7 @@ namespace CarinaStudio.AutoUpdater
 						it.With(new FontManagerOptions
 						{
 							// ReSharper disable StringLiteralTypo
-							FontFallbacks = new FontFallback[]
-							{
+							FontFallbacks = [
 								new()
 								{
 									FontFamily = new("Microsoft JhengHei UI"),
@@ -291,7 +289,7 @@ namespace CarinaStudio.AutoUpdater
 									FontFamily = new("MingLiU"),
 									UnicodeRange = cjkUnicodeRanges,
 								}
-							},
+							],
 							// ReSharper restore StringLiteralTypo
 						});
 					}
@@ -301,8 +299,7 @@ namespace CarinaStudio.AutoUpdater
 						{
 							DefaultFamilyName = $"avares://AutoUpdater.Avalonia/Fonts/#Inter",
 							// ReSharper disable StringLiteralTypo
-							FontFallbacks = new FontFallback[]
-							{
+							FontFallbacks = [
 								new()
 								{
 									FontFamily = new("Noto Sans CJK TC"),
@@ -333,7 +330,7 @@ namespace CarinaStudio.AutoUpdater
 									FontFamily = new("Noto Serif CJK SC"),
 									UnicodeRange = cjkUnicodeRanges,
 								}
-							},
+							],
 							// ReSharper restore StringLiteralTypo
 						});
 						it.With(new X11PlatformOptions());
@@ -992,7 +989,7 @@ namespace CarinaStudio.AutoUpdater
 				if (!this.SetupWindowsTaskbarList())
 					return;
 				var hWnd = (window.TryGetPlatformHandle()?.Handle).GetValueOrDefault();
-				if (hWnd == default)
+				if (hWnd == IntPtr.Zero)
 					return;
 				this.windowsTaskbarList.SetProgressValue(hWnd, (ulong)(this.taskBarProgress * 1000 + 0.5), 1000UL);
 				this.windowsTaskbarList.SetProgressState(hWnd, this.taskBarProgressState switch
@@ -1035,7 +1032,7 @@ namespace CarinaStudio.AutoUpdater
 		// ReSharper disable UnassignedGetOnlyAutoProperty
 		public override bool IsShutdownStarted { get; }
 		// ReSharper restore UnassignedGetOnlyAutoProperty
-		public override ILoggerFactory LoggerFactory { get; } = new LoggerFactory(new ILoggerProvider[] { new NLog.Extensions.Logging.NLogLoggerProvider() });
+		public override ILoggerFactory LoggerFactory { get; } = new LoggerFactory([ new NLog.Extensions.Logging.NLogLoggerProvider() ]);
 		public override ISettings PersistentState { get; } = new MemorySettings();
 		public override string RootPrivateDirectoryPath { get; }
 		public override ISettings Settings { get; } = new MemorySettings();

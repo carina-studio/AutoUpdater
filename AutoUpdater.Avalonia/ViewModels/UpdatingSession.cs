@@ -2,10 +2,10 @@
 using CarinaStudio.AutoUpdate.Resolvers;
 using CarinaStudio.Collections;
 using CarinaStudio.IO;
+using CarinaStudio.Logging;
 using CarinaStudio.Net;
 using CarinaStudio.Threading;
 using CarinaStudio.ViewModels;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

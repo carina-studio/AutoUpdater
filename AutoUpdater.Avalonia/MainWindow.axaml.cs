@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using CarinaStudio.AutoUpdater.ViewModels;
+using CarinaStudio.Logging;
 using CarinaStudio.Threading;
 using CarinaStudio.Windows.Input;
 using Microsoft.Extensions.Logging;
@@ -54,7 +55,7 @@ class MainWindow : Window
 	/// <inheritdoc/>
 	protected override void OnClosing(WindowClosingEventArgs e)
 	{
-		if (this.DataContext is ViewModels.UpdatingSession session && session.IsUpdating)
+		if (this.DataContext is UpdatingSession session && session.IsUpdating)
 		{
 			this.logger.LogWarning("Cancel updating by closing window");
 			e.Cancel = true;
@@ -66,18 +67,23 @@ class MainWindow : Window
 
 
 	// Window opened.
-	protected override async void OnOpened(EventArgs e)
+	protected override void OnOpened(EventArgs e)
 	{
-		// call base
 		base.OnOpened(e);
-
+		_ = this.OnOpenedAsync();
+	}
+	
+	
+	// Called when window opened.
+	async Task OnOpenedAsync()
+	{
 		// wait for logger configuration
 		var app = (App)App.Current;
 		await app.WaitForLoggerReadyAsync();
 
 		// start updating
 		app.UpdateTaskBarProgress(this, TaskbarIconProgressState.Indeterminate, 0);
-		if (this.DataContext is ViewModels.UpdatingSession session)
+		if (this.DataContext is UpdatingSession session)
 		{
 			this.synchronizationContext.PostDelayed(async () =>
 			{
@@ -108,11 +114,11 @@ class MainWindow : Window
 		base.OnPropertyChanged(change);
 		if (change.Property == DataContextProperty)
 		{
-			(change.OldValue as ViewModels.UpdatingSession)?.Let(it =>
+			(change.OldValue as UpdatingSession)?.Let(it =>
 			{
 				it.PropertyChanged -= this.OnSessionPropertyChanged;
 			});
-			(change.NewValue as ViewModels.UpdatingSession)?.Let(it =>
+			(change.NewValue as UpdatingSession)?.Let(it =>
 			{
 				it.PropertyChanged += this.OnSessionPropertyChanged;
 			});
@@ -123,31 +129,31 @@ class MainWindow : Window
 	// Called when property of session changed.
 	void OnSessionPropertyChanged(object? sender, PropertyChangedEventArgs e)
 	{
-		if (this.DataContext is not ViewModels.UpdatingSession session)
+		if (this.DataContext is not UpdatingSession session)
 			return;
 		var app = (App)App.Current;
 		switch (e.PropertyName)
 		{
-			case nameof(ViewModels.UpdatingSession.IsDownloadingPackage):
+			case nameof(UpdatingSession.IsDownloadingPackage):
 				if (session.IsDownloadingPackage)
 					app.UpdateTaskBarProgress(this, TaskbarIconProgressState.Normal, 0);
 				break;
 			
-			case nameof(ViewModels.UpdatingSession.IsInstallingPackage):
+			case nameof(UpdatingSession.IsInstallingPackage):
 				if (session.IsInstallingPackage)
 					app.UpdateTaskBarProgress(this, TaskbarIconProgressState.Normal, 0.5);
 				break;
 			
-			case nameof(ViewModels.UpdatingSession.IsRefreshingApplicationIcon):
+			case nameof(UpdatingSession.IsRefreshingApplicationIcon):
 				this.isAppIconRefreshed = true;
 				break;
 			
-			case nameof(ViewModels.UpdatingSession.IsWaitingForProcess):
+			case nameof(UpdatingSession.IsWaitingForProcess):
 				if (session.IsWaitingForProcess)
 					app.UpdateTaskBarProgress(this, TaskbarIconProgressState.Indeterminate, 0);
 				break;
 			
-			case nameof(ViewModels.UpdatingSession.IsUpdatingCompleted):
+			case nameof(UpdatingSession.IsUpdatingCompleted):
 				this.synchronizationContext.Post(() =>
 				{
 					if (session.IsUpdatingSucceeded)
@@ -168,7 +174,7 @@ class MainWindow : Window
 				});
 				break;
 			
-			case nameof(ViewModels.UpdatingSession.ProgressPercentage):
+			case nameof(UpdatingSession.ProgressPercentage):
 				if (session.IsProgressAvailable)
 				{
 					if (session.IsDownloadingPackage)
