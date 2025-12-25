@@ -3,14 +3,15 @@ using CarinaStudio.AutoUpdate.Resolvers;
 using CarinaStudio.Collections;
 using CarinaStudio.IO;
 using CarinaStudio.Logging;
-using CarinaStudio.Net;
+using CarinaStudio.Net.Http;
 using CarinaStudio.Threading;
 using CarinaStudio.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,17 +28,14 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		
 		
 		// Static fields.
-		static bool bypassCertificateValidation;
+		static readonly HttpClientHandler BypassCertificateValidationHttpClientHandler = new()
+		{
+			ServerCertificateCustomValidationCallback = (_, _, _, _) => true
+		};
 		
 		
 		// Fields.
-		string? httpUserAgent;
 		bool isAppIconRefreshed;
-		string? packageRequestHttpReferer;
-		string? packageManifestRequestHttpReferer;
-		Uri? packageManifestUri;
-		string? processExecutableToWaitFor;
-		int? processIdToWaitFor;
 		CancellationTokenSource? processWaitingCancellationTokenSource;
 		readonly ScheduledAction updateMessageAction;
 
@@ -58,18 +56,15 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		/// <summary>
 		/// Get or set whether certification validation can be bypassed or not.
 		/// </summary>
-		public static bool BypassCertificateValidation
+		public bool BypassCertificateValidation
 		{
-			get => bypassCertificateValidation;
+			get;
 			set
 			{
-				if (bypassCertificateValidation == value)
+				if (field == value)
 					return;
-				bypassCertificateValidation = value;
-				if (value)
-					ServicePointManager.ServerCertificateValidationCallback = (_, _, _, _) => true;
-				else
-					ServicePointManager.ServerCertificateValidationCallback = null;
+				field = value;
+				this.SetupPackageManifestSource();
 			}
 		}
 
@@ -93,9 +88,9 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		// Create package resolver.
 		protected override IPackageResolver CreatePackageResolver(IStreamProvider source)
 		{
-			if (source is not WebRequestStreamProvider wrStreamProvider)
+			if (this.PackageManifestUri?.LocalPath is not { } localPath)
 				return base.CreatePackageResolver(source);
-			var packageManifestName = Path.GetExtension(wrStreamProvider.RequestUri.LocalPath).ToLower();
+			var packageManifestName = Path.GetExtension(localPath).ToLower();
 			if (packageManifestName == ".xml")
 				return new XmlPackageResolver(this.Application, this.ApplicationBaseVersion) { Source = source };
 			return new JsonPackageResolver(this.Application, this.ApplicationBaseVersion) { Source = source };
@@ -115,14 +110,14 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		/// </summary>
 		public string? HttpUserAgent
 		{
-			get => this.httpUserAgent;
+			get;
 			set
 			{
 				this.VerifyAccess();
 				this.VerifyDisposed();
 				if (this.IsUpdating || this.IsUpdatingCompleted)
 					throw new InvalidOperationException();
-				this.httpUserAgent = value;
+				field = value;
 				this.SetupPackageManifestSource();
 				if (value is not null)
 					this.PackageRequestHeaders[HttpUserAgentHeader] = value;
@@ -168,16 +163,16 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		/// <summary>
 		/// Get or set HTTP referer used for sending request to get package manifest.
 		/// </summary>
-		public string? PackageManifestRequestHttpReferer
+		public Uri? PackageManifestRequestHttpReferer
 		{
-			get => this.packageManifestRequestHttpReferer;
+			get;
 			set
 			{
 				this.VerifyAccess();
 				this.VerifyDisposed();
 				if (this.IsUpdating || this.IsUpdatingCompleted)
 					throw new InvalidOperationException();
-				this.packageManifestRequestHttpReferer = value;
+				field = value;
 				this.SetupPackageManifestSource();
 			}
 		}
@@ -188,14 +183,14 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		/// </summary>
 		public Uri? PackageManifestUri
 		{
-			get => this.packageManifestUri;
+			get;
 			set
 			{
 				this.VerifyAccess();
 				this.VerifyDisposed();
 				if (this.IsUpdating || this.IsUpdatingCompleted)
 					throw new InvalidOperationException();
-				this.packageManifestUri = value;
+				field = value;
 				this.SetupPackageManifestSource();
 			}
 		}
@@ -206,14 +201,14 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		/// </summary>
 		public string? PackageRequestHttpReferer
 		{
-			get => this.packageRequestHttpReferer;
+			get;
 			set
 			{
 				this.VerifyAccess();
 				this.VerifyDisposed();
 				if (this.IsUpdating || this.IsUpdatingCompleted)
 					throw new InvalidOperationException();
-				this.packageRequestHttpReferer = value;
+				field = value;
 				if (value is not null)
 					this.PackageRequestHeaders[HttpRefererHeader] = value;
 				else
@@ -227,14 +222,14 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		/// </summary>
 		public string? ProcessExecutableToWaitFor
 		{
-			get => this.processExecutableToWaitFor;
+			get;
 			set
 			{
 				this.VerifyAccess();
 				this.VerifyDisposed();
 				if (this.IsUpdating || this.IsUpdatingCompleted)
 					throw new InvalidOperationException();
-				this.processExecutableToWaitFor = value;
+				field = value;
 			}
 		}
 
@@ -244,14 +239,14 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		/// </summary>
 		public int? ProcessIdToWaitFor
 		{
-			get => this.processIdToWaitFor;
+			get;
 			set
 			{
 				this.VerifyAccess();
 				this.VerifyDisposed();
 				if (this.IsUpdating || this.IsUpdatingCompleted)
 					throw new InvalidOperationException();
-				this.processIdToWaitFor = value;
+				field = value;
 			}
 		}
 		
@@ -259,19 +254,22 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 		// Setup source to get package manifest.
 		void SetupPackageManifestSource()
 		{
-			if (this.packageManifestUri is null)
-				this.PackageManifestSource = null;
-			else
+			if (this.PackageManifestUri is { } manifestUri)
 			{
-				var headers = new Dictionary<string, string>().Also(it =>
+				var httpRequest = new HttpRequestMessage(HttpMethod.Get, manifestUri).Also(message =>
 				{
-					if (this.packageManifestRequestHttpReferer is not null)
-						it[HttpRefererHeader] = this.packageManifestRequestHttpReferer;
-					if (this.httpUserAgent is not null)
-						it[HttpUserAgentHeader] = this.httpUserAgent;
+					if (this.PackageManifestRequestHttpReferer is { } referer)
+						message.Headers.Referrer = referer;
+					if (this.HttpUserAgent is { } userAgent)
+						message.Headers.UserAgent.Add(new ProductInfoHeaderValue(userAgent, null));
 				});
-				this.PackageManifestSource = new WebRequestStreamProvider(this.packageManifestUri, headers: headers);
+				var messageHandler = this.BypassCertificateValidation
+					? BypassCertificateValidationHttpClientHandler
+					: null;
+				this.PackageManifestSource = new HttpResponseStreamProvider(() => httpRequest, messageHandler: messageHandler);
 			}
+			else
+				this.PackageManifestSource = null;
 		}
 
 
@@ -353,7 +351,7 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 			// check state
 			this.VerifyAccess();
 			this.VerifyDisposed();
-			if (this.processIdToWaitFor is null && string.IsNullOrWhiteSpace(this.processExecutableToWaitFor))
+			if (this.ProcessIdToWaitFor is null && string.IsNullOrWhiteSpace(this.ProcessExecutableToWaitFor))
 				return;
 			if (this.IsWaitingForProcess)
 				throw new InvalidOperationException();
@@ -366,8 +364,8 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 			{
 				// find processes
 				this.processWaitingCancellationTokenSource = new CancellationTokenSource();
-				var processId = this.processIdToWaitFor.GetValueOrDefault();
-				var processExecutable = this.processExecutableToWaitFor;
+				var processId = this.ProcessIdToWaitFor.GetValueOrDefault();
+				var processExecutable = this.ProcessExecutableToWaitFor;
 				var processes = await Task.Run(() =>
 				{
 					// get by PID

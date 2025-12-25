@@ -12,19 +12,20 @@ using CarinaStudio.Logging;
 using CarinaStudio.MacOS.AppKit;
 using CarinaStudio.MacOS.CoreGraphics;
 using CarinaStudio.Threading;
+using File = System.IO.File;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 using Microsoft.Extensions.Logging;
+using NLog;
+using SkiaSharp;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NLog;
-using SkiaSharp;
-using System.Runtime.InteropServices;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace CarinaStudio.AutoUpdater
 {
@@ -67,7 +68,7 @@ namespace CarinaStudio.AutoUpdater
 		CGImage? macOSAppDockTileOverlayCGImage;
 		NSImageView? macOSAppDockTileOverlayImageView;
 		NSImage? macOSAppDockTileOverlayNSImage;
-		string? packageManifestRequestHttpReferer;
+		Uri? packageManifestRequestHttpReferer;
 		Uri? packageManifestUri;
 		string? packageRequestHttpReferer;
 		int? processIdToWaitFor;
@@ -486,11 +487,14 @@ namespace CarinaStudio.AutoUpdater
 			});
 
 			// create updating session
+			if (this.bypassCertificateValidation)
+				this.logger.LogWarning("SSL certificate validation will be bypassed");
 			this.updatingSession = new UpdatingSession(this)
 			{
 				ApplicationBaseVersion = this.appBaseVersion,
 				ApplicationDirectoryPath = this.appDirectoryPath,
 				ApplicationName = this.appName,
+				BypassCertificateValidation = this.bypassCertificateValidation,
 				HttpUserAgent = this.httpUserAgent,
 				PackageManifestRequestHttpReferer = this.packageManifestRequestHttpReferer,
 				PackageManifestUri = this.packageManifestUri,
@@ -499,11 +503,6 @@ namespace CarinaStudio.AutoUpdater
 				ProcessIdToWaitFor = this.processIdToWaitFor,
 				SelfContainedPackageOnly = this.selfContainedPackageOnly,
 			};
-			if (this.bypassCertificateValidation)
-			{
-				this.logger.LogWarning("SSL certificate validation will be bypassed");
-				UpdatingSession.BypassCertificateValidation = true;
-			}
 
 			// show main window
 			this.SynchronizationContext.Post(() =>
@@ -658,7 +657,16 @@ namespace CarinaStudio.AutoUpdater
 						if (i < argCount - 1)
 						{
 							if (this.packageManifestRequestHttpReferer is null)
-								this.packageManifestRequestHttpReferer = args[++i];
+							{
+								var arg = args[++i];
+								if (Uri.TryCreate(arg, UriKind.Absolute, out var uri))
+									this.packageManifestRequestHttpReferer = uri;
+								else
+								{
+									this.logger.LogError("Invalid HTTP referer for package manifest request: {arg}", arg);
+									return false;
+								}
+							}
 							else
 							{
 								this.logger.LogError("Duplicate HTTP referer for package manifest request specified");
