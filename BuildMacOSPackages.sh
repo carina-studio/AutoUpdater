@@ -1,16 +1,23 @@
 APP_NAME="AutoUpdater.Avalonia"
-FRAMEWORK="net8.0"
+FRAMEWORK="net10.0"
 RID_LIST=("osx-x64" "osx-arm64")
 PUB_PLATFORM_LIST=("osx-x64" "osx-arm64")
 CONFIG="Release"
 TRIM_ASSEMBLIES="true"
 READY_TO_RUN="false"
+PACKAGING_TOOL_PATH="PackagingTool/bin/Release/$FRAMEWORK/CarinaStudio.ULogViewer.Packaging.dll"
 CERT_NAME="" # Name of certification to sign the application
 
 echo "********** Start building $APP_NAME **********"
 
+# Build packaging tool
+dotnet build PackagingTool -c Release -f $FRAMEWORK
+if [ "$?" != "0" ]; then
+    exit
+fi
+
 # Get application version
-VERSION=$(dotnet run --project PackagingTool get-current-version $APP_NAME/$APP_NAME.csproj)
+VERSION=$(dotnet $PACKAGING_TOOL_PATH get-current-version $APP_NAME/$APP_NAME.csproj)
 if [ "$?" != "0" ]; then
     echo "Unable to get version of $APP_NAME"
     exit
@@ -77,21 +84,10 @@ for i in "${!RID_LIST[@]}"; do
     rm ./Packages/$VERSION/$PUB_PLATFORM/$APP_NAME.app/Contents/MacOS/libMono*.dylib
     rm ./Packages/$VERSION/$PUB_PLATFORM/$APP_NAME.app/Contents/MacOS/*.png
     rm ./Packages/$VERSION/$PUB_PLATFORM/$APP_NAME.app/Contents/MacOS/*.pdb
-
+    
     # sign application
-    find "./Packages/$VERSION/$PUB_PLATFORM/$APP_NAME.app/Contents/MacOS/" | while read FILE_NAME; do
-        if [[ -f $FILE_NAME ]]; then
-            if [[ "$FILE_NAME" != "./Packages/$VERSION/$PUB_PLATFORM/$APP_NAME.app/Contents/MacOS//$APP_NAME" ]]; then
-                echo "Signing $FILE_NAME"
-                codesign -f -o runtime --timestamp --entitlements "./$APP_NAME/$APP_NAME.entitlements" -s "$CERT_NAME" "$FILE_NAME"
-                if [ "$?" != "0" ]; then
-                    exit
-                fi
-            fi
-        fi
-    done
-    codesign -f -o runtime --timestamp --entitlements "./$APP_NAME/$APP_NAME.entitlements" -s "$CERT_NAME" "./Packages/$VERSION/$PUB_PLATFORM/$APP_NAME.app/Contents/MacOS/$APP_NAME"
-    codesign -f -o runtime --timestamp --entitlements "./$APP_NAME/$APP_NAME.entitlements" -s "$CERT_NAME" "./Packages/$VERSION/$PUB_PLATFORM/$APP_NAME.app"
+    echo "Sign package 'Packages/$VERSION/$PUB_PLATFORM/$APP_NAME.app'"
+    codesign --deep --force --options=runtime --timestamp --entitlements "./$APP_NAME/$APP_NAME.entitlements" -s "$CERT_NAME" "./Packages/$VERSION/$PUB_PLATFORM/$APP_NAME.app"
 
     # zip .app directory
     ditto -c -k --sequesterRsrc --keepParent "./Packages/$VERSION/$PUB_PLATFORM/$APP_NAME.app" "./Packages/$VERSION/$APP_NAME-$VERSION-$PUB_PLATFORM.zip"
