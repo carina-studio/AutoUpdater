@@ -3,7 +3,7 @@
 set APP_NAME=AutoUpdater.Avalonia
 set RID_LIST=win-arm64 win-x64 win-x86
 set CONFIG=Release
-set FRAMEWORK=net8.0
+set FRAMEWORK=net10.0
 set SELF_CONTAINED=true
 set TRIM_ASSEMBLIES=true
 set READY_TO_RUN=false
