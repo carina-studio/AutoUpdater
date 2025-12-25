@@ -1,5 +1,7 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Primitives;
 using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
@@ -49,6 +51,7 @@ namespace CarinaStudio.AutoUpdater
 		string? appExeArgs;
 		string? appExePath;
 		string? appName;
+		Version appSuiteVersion = new(0, 0);
 		bool bypassCertificateValidation;
 		bool darkMode;
 		string? httpUserAgent;
@@ -411,57 +414,102 @@ namespace CarinaStudio.AutoUpdater
 			}
 
 			// load styles
-			this.Styles.Add(new FluentTheme());
-			this.Resources["Brush/Window.Background"] = new SolidColorBrush(this.darkMode ? Color.Parse("#202020") : Color.Parse("#f0f0f0"));
+			var resources = this.Resources;
+			var styles = this.Styles;
+			styles.Add(new FluentTheme());
+			if (this.appSuiteVersion.Major >= 3)
+			{
+				resources["Brush/Window.Background"] = new SolidColorBrush(this.darkMode ? Color.Parse("#272727") : Color.Parse("#f7f7f7"));
+				styles.Add(new Style(s => s.OfType(typeof(Button))).Also(it =>
+				{
+					it.Setters.Add(new Setter { Property = TemplatedControl.CornerRadiusProperty, Value = Platform.IsWindows
+						? new CornerRadius(4)
+						: new CornerRadius(6)
+					});
+				}));
+			}
+			else
+				resources["Brush/Window.Background"] = new SolidColorBrush(this.darkMode ? Color.Parse("#202020") : Color.Parse("#f0f0f0"));
 			if (this.darkMode)
-            {
-				var borderBrush = new LinearGradientBrush().Also(it =>
+			{
+				IBrush borderBrush;
+				IBrush borderBrushPressed;
+				if (this.appSuiteVersion.Major >= 3)
 				{
-					it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
-					it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
-					it.GradientStops.Add(new GradientStop(Color.Parse("#22ffffff"), 0));
-					it.GradientStops.Add(new GradientStop(Color.Parse("#11ffffff"), 1));
-				});
-				var borderBrushPressed = new LinearGradientBrush().Also(it =>
+					borderBrush = new SolidColorBrush(Color.Parse("#404040"));
+					borderBrushPressed = new SolidColorBrush(Color.Parse("#2d2d2d"));
+				}
+				else
 				{
-					it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
-					it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
-					it.GradientStops.Add(new GradientStop(Color.Parse("#11ffffff"), 0));
-					it.GradientStops.Add(new GradientStop(Color.Parse("#22ffffff"), 1));
-				});
-				this.Resources["ButtonBackground"] = new SolidColorBrush(Color.Parse("#2d2d2d"));
-				this.Resources["ButtonBackgroundDisabled"] = new SolidColorBrush(Color.Parse("#373737"));
-				this.Resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(Color.Parse("#404040"));
-				this.Resources["ButtonBackgroundPressed"] = new SolidColorBrush(Color.Parse("#202020"));
-				this.Resources["ButtonBorderBrush"] = borderBrush;
-				this.Resources["ButtonBorderBrushDisabled"] = borderBrush;
-				this.Resources["ButtonBorderBrushPointerOver"] = borderBrush;
-				this.Resources["ButtonBorderBrushPressed"] = borderBrushPressed;
+					borderBrush = new LinearGradientBrush().Also(it =>
+					{
+						it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
+						it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
+						it.GradientStops.Add(new GradientStop(Color.Parse("#22ffffff"), 0));
+						it.GradientStops.Add(new GradientStop(Color.Parse("#11ffffff"), 1));
+					});
+					borderBrushPressed = new LinearGradientBrush().Also(it =>
+					{
+						it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
+						it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
+						it.GradientStops.Add(new GradientStop(Color.Parse("#11ffffff"), 0));
+						it.GradientStops.Add(new GradientStop(Color.Parse("#22ffffff"), 1));
+					});
+				}
+				resources["ButtonBackground"] = new SolidColorBrush(Color.Parse("#2d2d2d"));
+				if (this.appSuiteVersion.Major >= 3)
+				{
+					resources["ButtonBackgroundDisabled"] = new SolidColorBrush(Color.Parse("#303030"));
+					resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(Color.Parse("#3d3d3d"));
+				}
+				else
+				{
+					resources["ButtonBackgroundDisabled"] = new SolidColorBrush(Color.Parse("#373737"));
+					resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(Color.Parse("#404040"));
+				}
+				resources["ButtonBackgroundPressed"] = new SolidColorBrush(Color.Parse("#202020"));
+				resources["ButtonBorderBrush"] = borderBrush;
+				resources["ButtonBorderBrushDisabled"] = borderBrush;
+				resources["ButtonBorderBrushPointerOver"] = borderBrush;
+				resources["ButtonBorderBrushPressed"] = borderBrushPressed;
 			}
 			else
             {
-				var borderBrush = new LinearGradientBrush().Also(it =>
-				{
-					it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
-					it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
-					it.GradientStops.Add(new GradientStop(Color.Parse("#20000000"), 0));
-					it.GradientStops.Add(new GradientStop(Color.Parse("#50000000"), 1));
-				});
-				var borderBrushPressed = new LinearGradientBrush().Also(it =>
-				{
-					it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
-					it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
-					it.GradientStops.Add(new GradientStop(Color.Parse("#50000000"), 0));
-					it.GradientStops.Add(new GradientStop(Color.Parse("#20000000"), 1));
-				});
-				this.Resources["ButtonBackground"] = new SolidColorBrush(Color.Parse("#fbfbfb"));
-				this.Resources["ButtonBackgroundDisabled"] = new SolidColorBrush(Color.Parse("#e7e7e7"));
-				this.Resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(Color.Parse("#f0f0f0"));
-				this.Resources["ButtonBackgroundPressed"] = new SolidColorBrush(Color.Parse("#e0e0e0"));
-				this.Resources["ButtonBorderBrush"] = borderBrush;
-				this.Resources["ButtonBorderBrushDisabled"] = borderBrush;
-				this.Resources["ButtonBorderBrushPointerOver"] = borderBrush;
-				this.Resources["ButtonBorderBrushPressed"] = borderBrushPressed;
+	            IBrush borderBrush;
+	            IBrush borderBrushPressed;
+	            if (this.appSuiteVersion.Major >= 3)
+	            {
+		            borderBrush = new SolidColorBrush(Color.Parse("#c4c4c4"));
+		            borderBrushPressed = new SolidColorBrush(Color.Parse("#a7a7a7"));
+	            }
+	            else
+	            {
+		            borderBrush = new LinearGradientBrush().Also(it =>
+		            {
+			            it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
+			            it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
+			            it.GradientStops.Add(new GradientStop(Color.Parse("#20000000"), 0));
+			            it.GradientStops.Add(new GradientStop(Color.Parse("#50000000"), 1));
+		            });
+		            borderBrushPressed = new LinearGradientBrush().Also(it =>
+		            {
+			            it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
+			            it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
+			            it.GradientStops.Add(new GradientStop(Color.Parse("#50000000"), 0));
+			            it.GradientStops.Add(new GradientStop(Color.Parse("#20000000"), 1));
+		            });
+	            }
+				resources["ButtonBackground"] = new SolidColorBrush(Color.Parse("#fbfbfb"));
+				resources["ButtonBackgroundDisabled"] = new SolidColorBrush(Color.Parse("#e7e7e7"));
+				resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(Color.Parse("#f0f0f0"));
+				if (this.appSuiteVersion.Major >= 3)
+					resources["ButtonBackgroundPressed"] = new SolidColorBrush(Color.Parse("#e7e7e7"));
+				else
+					resources["ButtonBackgroundPressed"] = new SolidColorBrush(Color.Parse("#e0e0e0"));
+				resources["ButtonBorderBrush"] = borderBrush;
+				resources["ButtonBorderBrushDisabled"] = borderBrush;
+				resources["ButtonBorderBrushPointerOver"] = borderBrush;
+				resources["ButtonBorderBrushPressed"] = borderBrushPressed;
 			}
 			this.RequestedThemeVariant = this.darkMode ? ThemeVariant.Dark : ThemeVariant.Light;
 
@@ -477,13 +525,13 @@ namespace CarinaStudio.AutoUpdater
 				}
 				var sysAccentColorDark1 = GammaTransform(accentColor, 2.8);
 				var sysAccentColorLight1 = GammaTransform(accentColor, 0.682);
-				this.Resources["SystemAccentColor"] = accentColor;
-				this.Resources["SystemAccentColorDark1"] = sysAccentColorDark1;
-				this.Resources["SystemAccentColorDark2"] = GammaTransform(accentColor, 4.56);
-				this.Resources["SystemAccentColorDark3"] = GammaTransform(accentColor, 5.365);
-				this.Resources["SystemAccentColorLight1"] = sysAccentColorLight1;
-				this.Resources["SystemAccentColorLight2"] = GammaTransform(accentColor, 0.431);
-				this.Resources["SystemAccentColorLight3"] = GammaTransform(accentColor, 0.006);
+				resources["SystemAccentColor"] = accentColor;
+				resources["SystemAccentColorDark1"] = sysAccentColorDark1;
+				resources["SystemAccentColorDark2"] = GammaTransform(accentColor, 4.56);
+				resources["SystemAccentColorDark3"] = GammaTransform(accentColor, 5.365);
+				resources["SystemAccentColorLight1"] = sysAccentColorLight1;
+				resources["SystemAccentColorLight2"] = GammaTransform(accentColor, 0.431);
+				resources["SystemAccentColorLight3"] = GammaTransform(accentColor, 0.006);
 			});
 
 			// create updating session
@@ -520,13 +568,26 @@ namespace CarinaStudio.AutoUpdater
 			{
 				switch (args[i])
 				{
+					case "-app-suite-version":
+						if (i < argCount - 1)
+						{
+							var arg = args[++i];
+							if (Version.TryParse(arg, out var version))
+								this.appSuiteVersion = version;
+							else
+								this.logger.LogWarning("Invalid AppSuite version: {arg}", arg);
+						}
+						else
+							this.logger.LogWarning("No AppSuite version specified");
+						break;
 					case "-accent-color":
 						if (i < argCount - 1)
 						{
-							if (Color.TryParse(args[++i], out var color))
+							var arg = args[++i];
+							if (Color.TryParse(arg, out var color))
 								this.accentColor = color;
 							else
-								this.logger.LogWarning("Invalid accent color: {arg}", args[i]);
+								this.logger.LogWarning("Invalid accent color: {arg}", arg);
 						}
 						else
 							this.logger.LogWarning("No accent color specified");
@@ -534,10 +595,11 @@ namespace CarinaStudio.AutoUpdater
 					case "-base-version":
 						if (i < argCount - 1)
 						{
-							if (Version.TryParse(args[++i], out var version))
+							var arg = args[++i];
+							if (Version.TryParse(arg, out var version))
 								this.appBaseVersion = version;
 							else
-								this.logger.LogWarning("Invalid base application version: {arg}", args[i]);
+								this.logger.LogWarning("Invalid base application version: {arg}", arg);
 						}
 						else
 							this.logger.LogError("No base application version specified");
@@ -644,11 +706,12 @@ namespace CarinaStudio.AutoUpdater
 								this.logger.LogError("Duplicate package manifest URI specified");
 								return false;
 							}
-							if (Uri.TryCreate(args[++i], UriKind.Absolute, out var uri))
+							var arg = args[++i];
+							if (Uri.TryCreate(arg, UriKind.Absolute, out var uri))
 								this.packageManifestUri = uri;
 							else
 							{
-								this.logger.LogError("Invalid package manifest URI: {arg}", args[i]);
+								this.logger.LogError("Invalid package manifest URI: {arg}", arg);
 								return false;
 							}
 						}
@@ -698,11 +761,12 @@ namespace CarinaStudio.AutoUpdater
 								this.logger.LogError("Duplicate process ID specified");
 								return false;
 							}
-							else if (int.TryParse(args[++i], out var pid))
+							var arg = args[++i];
+							if (int.TryParse(arg, out var pid))
 								this.processIdToWaitFor = pid;
 							else
 							{
-								this.logger.LogError("Invalid process ID: {arg}", args[i]);
+								this.logger.LogError("Invalid process ID: {arg}", arg);
 								return false;
 							}
 						}
