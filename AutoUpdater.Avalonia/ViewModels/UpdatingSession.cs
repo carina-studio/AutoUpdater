@@ -317,9 +317,14 @@ namespace CarinaStudio.AutoUpdater.ViewModels
 						break;
 					case UpdaterState.InstallingPackage:
 						{
-							var version = this.UpdatingVersion;
+							var version = this.UpdatingInformationalVersion.Let(it =>
+							{
+								if (string.IsNullOrWhiteSpace(it))
+									return this.UpdatingVersion?.ToString();
+								return it;
+							});
 							// ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
-							if (version is not null)
+							if (!string.IsNullOrWhiteSpace(version))
 								this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.InstallingPackage.WithVersion", appName, version));
 							else
 								this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.InstallingPackage", appName));

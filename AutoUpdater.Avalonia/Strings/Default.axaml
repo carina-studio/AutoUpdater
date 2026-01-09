@@ -20,10 +20,10 @@
 	<sys:String x:Key="String.UpdatingSession.RefreshApplicationIcon">Refresh application icon</sys:String>
 	<sys:String x:Key="String.UpdatingSession.RefreshingApplicationIcon">Refreshing application icon…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.RestoringApplication">Restoring {0}…</sys:String>
-	<sys:String x:Key="String.UpdatingSession.UpdatingCancelled">Updating has been cancelled.</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingCancelled">The update has been cancelled.</sys:String>
 	<sys:String x:Key="String.UpdatingSession.UpdatingFailed">Failed to update {0}.</sys:String>
-	<sys:String x:Key="String.UpdatingSession.UpdatingSucceeded">Complete updating {0}.</sys:String>
-	<sys:String x:Key="String.UpdatingSession.UpdatingSucceeded.WithAppIconRefreshed.MacOS">Complete updating {0}. You may need to restart your computer to complete updating application icon.</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingSucceeded">{0} has been updated.</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingSucceeded.WithAppIconRefreshed.MacOS">{0} has been updated. A restart may be needed to refresh the application icon.</sys:String>
 	<sys:String x:Key="String.UpdatingSession.VerifyingPackage">Verifying downloaded update package…</sys:String>
 	<sys:String x:Key="String.UpdatingSession.WaitingForProcess">Waiting for closing {0}…</sys:String>
     
