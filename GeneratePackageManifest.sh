@@ -8,7 +8,12 @@ if [ "$?" != "0" ]; then
     echo "Unable to get version of $APP_NAME"
     exit
 fi
-echo "Version: $VERSION"
+INFORMATIONAL_VERSION=$(dotnet run --project PackagingTool get-current-informational-version $APP_NAME/$APP_NAME.csproj)
+if [ "$?" != "0" ]; then
+    echo "Unable to get version of $APP_NAME"
+    exit
+fi
+echo "Version: $VERSION ($INFORMATIONAL_VERSION)"
 
 # Generate package manifest
-dotnet run --project PackagingTool create-package-manifest $APP_NAME $VERSION
+dotnet run --project PackagingTool create-package-manifest $APP_NAME $VERSION $INFORMATIONAL_VERSION
