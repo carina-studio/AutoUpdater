@@ -28,6 +28,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace CarinaStudio.AutoUpdater
 {
@@ -75,6 +76,7 @@ namespace CarinaStudio.AutoUpdater
 		Uri? packageManifestUri;
 		string? packageRequestHttpReferer;
 		int? processIdToWaitFor;
+		bool keepUnrelatedFiles = true;
 		bool selfContainedPackageOnly;
 		double taskBarProgress;
 		TaskbarIconProgressState taskBarProgressState = TaskbarIconProgressState.None;
@@ -119,10 +121,8 @@ namespace CarinaStudio.AutoUpdater
 						return Path.GetDirectoryName(codeBase[7..]) ?? Environment.CurrentDirectory;
 					}
 				}
-				// ReSharper disable EmptyGeneralCatchClause
 				catch
-				{ }
-				// ReSharper restore EmptyGeneralCatchClause
+				{ /* best effort */ }
 #pragma warning restore SYSLIB0044
 				return Environment.CurrentDirectory;
 			});
@@ -196,6 +196,42 @@ namespace CarinaStudio.AutoUpdater
 
 			// set environment variable
 			Environment.SetEnvironmentVariable("AVALONIA_GLOBAL_SCALE_FACTOR", factor.ToString(CultureInfo.InvariantCulture));
+		}
+
+
+		// Get the 1st-level .app bundle path that owns the given executable,
+		// verified against CFBundleExecutable in Info.plist.
+		static string? GetMacOSAppBundlePath(string exePath)
+		{
+			if (exePath.EndsWith(".app", StringComparison.OrdinalIgnoreCase))
+				return exePath;
+			var dir = Path.GetDirectoryName(exePath);
+			if (dir is null || !dir.EndsWith(".app/Contents/MacOS", StringComparison.OrdinalIgnoreCase))
+				return null;
+			var bundlePath = dir[..^"/Contents/MacOS".Length];
+			var plistPath = Path.Combine(bundlePath, "Contents", "Info.plist");
+			if (!File.Exists(plistPath))
+				return null;
+			try
+			{
+				var xmlDoc = new XmlDocument();
+				xmlDoc.Load(plistPath);
+				var dictNode = xmlDoc.SelectSingleNode("/plist/dict") as XmlElement;
+				if (dictNode is null)
+					return null;
+				var keyNode = dictNode.FirstChild;
+				while (keyNode is not null)
+				{
+					if (keyNode is XmlElement { Name: "key", InnerText: "CFBundleExecutable" }
+					    && keyNode.NextSibling is XmlElement { Name: "string" } valueNode
+					    && string.Equals(valueNode.InnerText, Path.GetFileName(exePath), StringComparison.Ordinal))
+						return bundlePath;
+					keyNode = keyNode.NextSibling;
+				}
+			}
+			catch
+			{ /* best effort */ }
+			return null;
 		}
 
 
@@ -549,6 +585,7 @@ namespace CarinaStudio.AutoUpdater
 				PackageRequestHttpReferer = this.packageRequestHttpReferer,
 				ProcessExecutableToWaitFor = this.appExePath,
 				ProcessIdToWaitFor = this.processIdToWaitFor,
+				KeepUnrelatedFiles = this.keepUnrelatedFiles,
 				SelfContainedPackageOnly = this.selfContainedPackageOnly,
 			};
 
@@ -746,6 +783,9 @@ namespace CarinaStudio.AutoUpdater
 						if (i >= argCount)
 							this.logger.LogWarning("No screen scale factor specified");
 						break;
+					case "-discard-unrelated-files":
+						this.keepUnrelatedFiles = false;
+						break;
 					case "-self-contained-only":
 						this.selfContainedPackageOnly = true;
 						break;
@@ -896,11 +936,11 @@ namespace CarinaStudio.AutoUpdater
 			try
 			{
 				// mark file as executable
+				string appExePath = this.appExePath.AsNonNull();
 				if (Platform.IsLinux)
 				{
 					try
 					{
-						var appExePath = this.appExePath.AsNonNull();
 						if (File.Exists(appExePath))
 						{
 #pragma warning disable CA1416
@@ -917,13 +957,27 @@ namespace CarinaStudio.AutoUpdater
 				}
 
 				// start application
-				this.logger.LogDebug("Start application '{appExePath}'", this.appExePath);
-				Process.Start(new ProcessStartInfo
+				var appBundlePath = Platform.IsMacOS ? GetMacOSAppBundlePath(appExePath) : null;
+				if (appBundlePath is null)
 				{
-					Arguments = this.appExeArgs ?? "",
-					FileName = this.appExePath.AsNonNull(),
-					UseShellExecute = Platform.IsMacOS && Path.GetExtension(this.appExePath).ToLower() == ".app",
-				});
+					this.logger.LogDebug("Start application '{appExePath}'", appExePath);
+					Process.Start(new ProcessStartInfo
+					{
+						Arguments = this.appExeArgs ?? "",
+						FileName = appExePath,
+						UseShellExecute = false,
+					});
+				}
+				else
+				{
+					this.logger.LogDebug("Start application bundle '{appBundlePath}'", appBundlePath);
+					Process.Start(new ProcessStartInfo
+					{
+						Arguments = string.IsNullOrEmpty(this.appExeArgs) ? $"\"{appBundlePath}\"" : $"\"{appBundlePath}\" --args {this.appExeArgs}",
+						FileName = "open",
+						UseShellExecute = false,
+					});
+				}
 				return true;
 			}
 			catch (Exception ex)
@@ -1052,7 +1106,7 @@ namespace CarinaStudio.AutoUpdater
 
 
 		// Update progress and state of task bar icon.
-		public void UpdateTaskBarProgress(Avalonia.Controls.Window window, TaskbarIconProgressState state, double progress)
+		public void UpdateTaskBarProgress(Window window, TaskbarIconProgressState state, double progress)
 		{
 			this.taskBarProgress = progress;
 			this.taskBarProgressState = state;
