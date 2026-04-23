@@ -36,9 +36,9 @@ The icon uses a single blue ramp for the background gradient, matching AppUpdate
 
 ### 3.1 Background
 
-- **Shape:** rounded rectangle with `rx=128` (Windows/Linux) or square PNG clipped by OS (macOS squircle)
-- **Fill:** vertical linear gradient from `#38BDF8` (top) to `#006CBF` (bottom)
-- The top-light-to-bottom-dark direction reinforces the upward launch direction
+- **macOS:** square PNG with vertical linear gradient from `#38BDF8` (top) to `#006CBF` (bottom). The OS applies the squircle mask at runtime.
+- **Windows / Linux:** no background — the rocket sits on a fully transparent canvas (no gradient, no rounded-rect clipping).
+- The top-light-to-bottom-dark gradient direction (macOS only) reinforces the upward launch direction.
 
 ### 3.2 Rocket body
 
@@ -120,39 +120,32 @@ All artwork is produced on a **1024 × 1024 px** master canvas. Platform-specifi
       <stop offset="0%" stop-color="#38bdf8"/>
       <stop offset="100%" stop-color="#006cbf"/>
     </linearGradient>
-    <clipPath id="shape">
-      <!-- Windows/Linux: pre-applied rx=128 -->
-      <rect width="1024" height="1024" rx="128"/>
-      <!-- macOS: omit clip, submit square PNG -->
-    </clipPath>
   </defs>
-  <g clip-path="url(#shape)">
-    <!-- Background -->
-    <rect width="1024" height="1024" fill="url(#bg)"/>
-    <!-- Rocket body -->
-    <rect x="388" y="210" width="248" height="556" rx="124" fill="#ffffff"/>
-    <!-- Nose cone -->
-    <path d="M388 330 Q388 136 512 76 Q636 136 636 330 Z" fill="#2e6080"/>
-    <!-- Left fin -->
-    <path d="M388 618 L240 810 L388 758 Z" fill="#003566"/>
-    <!-- Right fin -->
-    <path d="M636 618 L784 810 L636 758 Z" fill="#003566"/>
-    <!-- Window ring -->
-    <circle cx="512" cy="448" r="88" fill="#003566"/>
-    <!-- Window glass -->
-    <circle cx="512" cy="448" r="64" fill="#7dd3fc"/>
-    <!-- Window glint -->
-    <circle cx="490" cy="428" r="20" fill="#ffffff" fill-opacity="0.55"/>
-    <!-- Flame outer -->
-    <path d="M424 766 Q462 954 512 868 Q562 954 600 766"
-          fill="none" stroke="#f97316" stroke-width="56" stroke-linecap="round"/>
-    <!-- Flame mid -->
-    <path d="M448 766 Q480 900 512 838 Q544 900 576 766"
-          fill="none" stroke="#fbbf24" stroke-width="38" stroke-linecap="round"/>
-    <!-- Flame inner -->
-    <path d="M466 766 Q490 858 512 820 Q534 858 558 766"
-          fill="none" stroke="#fef9c3" stroke-width="22" stroke-linecap="round"/>
-  </g>
+  <!-- Background (macOS only — omit this rect for Windows/Linux transparent variant) -->
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <!-- Rocket body -->
+  <rect x="388" y="210" width="248" height="556" rx="124" fill="#ffffff"/>
+  <!-- Nose cone -->
+  <path d="M388 330 Q388 136 512 76 Q636 136 636 330 Z" fill="#2e6080"/>
+  <!-- Left fin -->
+  <path d="M388 618 L240 810 L388 758 Z" fill="#003566"/>
+  <!-- Right fin -->
+  <path d="M636 618 L784 810 L636 758 Z" fill="#003566"/>
+  <!-- Window ring -->
+  <circle cx="512" cy="448" r="88" fill="#003566"/>
+  <!-- Window glass -->
+  <circle cx="512" cy="448" r="64" fill="#7dd3fc"/>
+  <!-- Window glint -->
+  <circle cx="490" cy="428" r="20" fill="#ffffff" fill-opacity="0.55"/>
+  <!-- Flame outer -->
+  <path d="M424 766 Q462 954 512 868 Q562 954 600 766"
+        fill="none" stroke="#f97316" stroke-width="56" stroke-linecap="round"/>
+  <!-- Flame mid -->
+  <path d="M448 766 Q480 900 512 838 Q544 900 576 766"
+        fill="none" stroke="#fbbf24" stroke-width="38" stroke-linecap="round"/>
+  <!-- Flame inner -->
+  <path d="M466 766 Q490 858 512 820 Q534 858 558 766"
+        fill="none" stroke="#fef9c3" stroke-width="22" stroke-linecap="round"/>
 </svg>
 ```
 
@@ -185,7 +178,7 @@ iconutil -c icns AppUpdater.iconset
 
 ### 6.2 Windows
 
-Pre-apply `rx=128` rounded rectangle clipping before embedding frames in the `.ico` file. All frames use a transparent background outside the rounded shape.
+Render the rocket on a **fully transparent canvas** — no background gradient and no rounded-rect clipping. The rocket sits free against whatever taskbar / Explorer background it appears on.
 
 > **Note:** Pillow's native ICO export produces incorrect results. Multi-size `.ico` files must be built manually via struct packing.
 
@@ -200,18 +193,18 @@ Pre-apply `rx=128` rounded rectangle clipping before embedding frames in the `.i
 
 ### 6.3 Linux
 
-Use the same `rx=128` rounded rectangle PNG files as Windows. Provide PNGs at 16, 32, 48, 64, 128, and 256 px. Some desktop environments (GNOME 42+) may apply their own mask on top — this is acceptable.
+Linux reuses the **same `.ico` file** as Windows — transparent rocket, no separate PNG set. Avalonia loads the multi-frame `.ico` for the window icon at runtime.
 
 ---
 
 ## 7. Theme Compatibility
 
-The icon uses a **single set of artwork for both dark and light system themes**. The gradient background (`#38BDF8` → `#006CBF`) provides sufficient contrast against both dark and light taskbars/Docks:
+The icon uses a **single set of artwork for both dark and light system themes**.
 
-- **Dark taskbar:** the bright sky-blue top and white rocket body create strong separation.
-- **Light taskbar:** the deeper `#006CBF` bottom and navy fins ensure the icon remains readable.
+- **macOS (gradient background):** the `#38BDF8` → `#006CBF` gradient gives strong separation against both dark Docks (bright sky-blue top, white body) and light Docks (deeper `#006CBF` bottom, navy fins).
+- **Windows / Linux (transparent background):** the rocket relies on its own internal contrast — the dark navy fins and window ring against the white body remain readable on either dark or light taskbars. The orange flame ensures a warm focal point in both cases.
 
-No separate dark/light variants are required. This matches the approach used across the Carina Studio suite.
+No separate dark/light variants are required.
 
 ---
 
