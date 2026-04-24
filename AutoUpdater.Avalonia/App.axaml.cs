@@ -455,97 +455,99 @@ namespace CarinaStudio.AutoUpdater
 			styles.Add(new FluentTheme());
 			if (this.appSuiteVersion.Major >= 3)
 			{
-				resources["Brush/Window.Background"] = new SolidColorBrush(this.darkMode ? Color.Parse("#272727") : Color.Parse("#f7f7f7"));
+				// Colors synced from AppSuiteBase Base/Dark/Light-Colors + Dark/Light-Windows overrides.
+				// Windows uses {Dark|Light}-Windows values; macOS and Linux use {Dark|Light}-Colors values.
+				var isWindows = Platform.IsWindows;
+				if (this.darkMode)
+				{
+					resources["Brush/Window.Background"] = new SolidColorBrush(isWindows ? Color.Parse("#202020") : Color.Parse("#373737"));
+					var borderBrush = new SolidColorBrush(isWindows ? Color.Parse("#4a4a4a") : Color.Parse("#474747"));
+					var borderBrushPointerOver = new SolidColorBrush(isWindows ? Color.Parse("#646464") : Color.Parse("#505050"));
+					var borderBrushPressed = new SolidColorBrush(isWindows ? Color.Parse("#404040") : Color.Parse("#373737"));
+					resources["ButtonBackground"] = new SolidColorBrush(isWindows ? Color.Parse("#2d2d2d") : Color.Parse("#404040"));
+					resources["ButtonBackgroundDisabled"] = new SolidColorBrush(Color.Parse("#505050"));
+					resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(isWindows ? Color.Parse("#3d3d3d") : Color.Parse("#474747"));
+					resources["ButtonBackgroundPressed"] = new SolidColorBrush(isWindows ? Color.Parse("#4a4a4a") : Color.Parse("#303030"));
+					resources["ButtonBorderBrush"] = borderBrush;
+					resources["ButtonBorderBrushDisabled"] = borderBrush;
+					resources["ButtonBorderBrushPointerOver"] = borderBrushPointerOver;
+					resources["ButtonBorderBrushPressed"] = borderBrushPressed;
+				}
+				else
+				{
+					resources["Brush/Window.Background"] = new SolidColorBrush(isWindows ? Color.Parse("#ffffff") : Color.Parse("#ececec"));
+					var borderBrush = new SolidColorBrush(isWindows ? Color.Parse("#cccccc") : Color.Parse("#d7d7d7"));
+					var borderBrushPressed = new SolidColorBrush(isWindows ? Color.Parse("#aaaaaa") : Color.Parse("#a7a7a7"));
+					resources["ButtonBackground"] = new SolidColorBrush(Color.Parse("#ffffff"));
+					resources["ButtonBackgroundDisabled"] = new SolidColorBrush(Color.Parse("#e7e7e7"));
+					resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(Color.Parse("#f0f0f0"));
+					resources["ButtonBackgroundPressed"] = new SolidColorBrush(Color.Parse("#e7e7e7"));
+					resources["ButtonBorderBrush"] = borderBrush;
+					resources["ButtonBorderBrushDisabled"] = borderBrush;
+					resources["ButtonBorderBrushPointerOver"] = borderBrush;
+					resources["ButtonBorderBrushPressed"] = borderBrushPressed;
+				}
 				styles.Add(new Style(s => s.OfType(typeof(Button))).Also(it =>
 				{
-					it.Setters.Add(new Setter { Property = TemplatedControl.CornerRadiusProperty, Value = Platform.IsWindows
+					it.Setters.Add(new Setter { Property = TemplatedControl.CornerRadiusProperty, Value = isWindows
 						? new CornerRadius(4)
 						: new CornerRadius(6)
 					});
 				}));
 			}
 			else
-				resources["Brush/Window.Background"] = new SolidColorBrush(this.darkMode ? Color.Parse("#202020") : Color.Parse("#f0f0f0"));
-			if (this.darkMode)
 			{
-				IBrush borderBrush;
-				IBrush borderBrushPressed;
-				if (this.appSuiteVersion.Major >= 3)
+				resources["Brush/Window.Background"] = new SolidColorBrush(this.darkMode ? Color.Parse("#202020") : Color.Parse("#f0f0f0"));
+				if (this.darkMode)
 				{
-					borderBrush = new SolidColorBrush(Color.Parse("#404040"));
-					borderBrushPressed = new SolidColorBrush(Color.Parse("#2d2d2d"));
-				}
-				else
-				{
-					borderBrush = new LinearGradientBrush().Also(it =>
+					var borderBrush = new LinearGradientBrush().Also(it =>
 					{
 						it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
 						it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
 						it.GradientStops.Add(new GradientStop(Color.Parse("#22ffffff"), 0));
 						it.GradientStops.Add(new GradientStop(Color.Parse("#11ffffff"), 1));
 					});
-					borderBrushPressed = new LinearGradientBrush().Also(it =>
+					var borderBrushPressed = new LinearGradientBrush().Also(it =>
 					{
 						it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
 						it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
 						it.GradientStops.Add(new GradientStop(Color.Parse("#11ffffff"), 0));
 						it.GradientStops.Add(new GradientStop(Color.Parse("#22ffffff"), 1));
 					});
-				}
-				resources["ButtonBackground"] = new SolidColorBrush(Color.Parse("#2d2d2d"));
-				if (this.appSuiteVersion.Major >= 3)
-				{
-					resources["ButtonBackgroundDisabled"] = new SolidColorBrush(Color.Parse("#303030"));
-					resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(Color.Parse("#3d3d3d"));
-				}
-				else
-				{
+					resources["ButtonBackground"] = new SolidColorBrush(Color.Parse("#2d2d2d"));
 					resources["ButtonBackgroundDisabled"] = new SolidColorBrush(Color.Parse("#373737"));
 					resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(Color.Parse("#404040"));
+					resources["ButtonBackgroundPressed"] = new SolidColorBrush(Color.Parse("#202020"));
+					resources["ButtonBorderBrush"] = borderBrush;
+					resources["ButtonBorderBrushDisabled"] = borderBrush;
+					resources["ButtonBorderBrushPointerOver"] = borderBrush;
+					resources["ButtonBorderBrushPressed"] = borderBrushPressed;
 				}
-				resources["ButtonBackgroundPressed"] = new SolidColorBrush(Color.Parse("#202020"));
-				resources["ButtonBorderBrush"] = borderBrush;
-				resources["ButtonBorderBrushDisabled"] = borderBrush;
-				resources["ButtonBorderBrushPointerOver"] = borderBrush;
-				resources["ButtonBorderBrushPressed"] = borderBrushPressed;
-			}
-			else
-            {
-	            IBrush borderBrush;
-	            IBrush borderBrushPressed;
-	            if (this.appSuiteVersion.Major >= 3)
-	            {
-		            borderBrush = new SolidColorBrush(Color.Parse("#c4c4c4"));
-		            borderBrushPressed = new SolidColorBrush(Color.Parse("#a7a7a7"));
-	            }
-	            else
-	            {
-		            borderBrush = new LinearGradientBrush().Also(it =>
-		            {
-			            it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
-			            it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
-			            it.GradientStops.Add(new GradientStop(Color.Parse("#20000000"), 0));
-			            it.GradientStops.Add(new GradientStop(Color.Parse("#50000000"), 1));
-		            });
-		            borderBrushPressed = new LinearGradientBrush().Also(it =>
-		            {
-			            it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
-			            it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
-			            it.GradientStops.Add(new GradientStop(Color.Parse("#50000000"), 0));
-			            it.GradientStops.Add(new GradientStop(Color.Parse("#20000000"), 1));
-		            });
-	            }
-				resources["ButtonBackground"] = new SolidColorBrush(Color.Parse("#fbfbfb"));
-				resources["ButtonBackgroundDisabled"] = new SolidColorBrush(Color.Parse("#e7e7e7"));
-				resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(Color.Parse("#f0f0f0"));
-				if (this.appSuiteVersion.Major >= 3)
-					resources["ButtonBackgroundPressed"] = new SolidColorBrush(Color.Parse("#e7e7e7"));
 				else
+				{
+					var borderBrush = new LinearGradientBrush().Also(it =>
+					{
+						it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
+						it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
+						it.GradientStops.Add(new GradientStop(Color.Parse("#20000000"), 0));
+						it.GradientStops.Add(new GradientStop(Color.Parse("#50000000"), 1));
+					});
+					var borderBrushPressed = new LinearGradientBrush().Also(it =>
+					{
+						it.EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative);
+						it.StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative);
+						it.GradientStops.Add(new GradientStop(Color.Parse("#50000000"), 0));
+						it.GradientStops.Add(new GradientStop(Color.Parse("#20000000"), 1));
+					});
+					resources["ButtonBackground"] = new SolidColorBrush(Color.Parse("#fbfbfb"));
+					resources["ButtonBackgroundDisabled"] = new SolidColorBrush(Color.Parse("#e7e7e7"));
+					resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(Color.Parse("#f0f0f0"));
 					resources["ButtonBackgroundPressed"] = new SolidColorBrush(Color.Parse("#e0e0e0"));
-				resources["ButtonBorderBrush"] = borderBrush;
-				resources["ButtonBorderBrushDisabled"] = borderBrush;
-				resources["ButtonBorderBrushPointerOver"] = borderBrush;
-				resources["ButtonBorderBrushPressed"] = borderBrushPressed;
+					resources["ButtonBorderBrush"] = borderBrush;
+					resources["ButtonBorderBrushDisabled"] = borderBrush;
+					resources["ButtonBorderBrushPointerOver"] = borderBrush;
+					resources["ButtonBorderBrushPressed"] = borderBrushPressed;
+				}
 			}
 			this.RequestedThemeVariant = this.darkMode ? ThemeVariant.Dark : ThemeVariant.Light;
 
