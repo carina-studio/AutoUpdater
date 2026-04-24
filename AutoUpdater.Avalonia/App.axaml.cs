@@ -667,6 +667,9 @@ namespace CarinaStudio.AutoUpdater
 							}
 						}
 						break;
+					case "-discard-unrelated-files":
+						this.keepUnrelatedFiles = false;
+						break;
 					case "-executable":
 						if (i < argCount - 1)
 						{
@@ -784,9 +787,6 @@ namespace CarinaStudio.AutoUpdater
 					case "-screen-scale-factor":
 						if (i >= argCount)
 							this.logger.LogWarning("No screen scale factor specified");
-						break;
-					case "-discard-unrelated-files":
-						this.keepUnrelatedFiles = false;
 						break;
 					case "-self-contained-only":
 						this.selfContainedPackageOnly = true;
