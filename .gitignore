@@ -1,5 +1,7 @@
 .idea
 .vs
+AGENTS.local.md
+CLAUDE.local.md
 obj
 bin
 AutoUpdater.csproj.user
