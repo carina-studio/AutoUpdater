@@ -38,6 +38,25 @@ When solving a bug or adding a feature, **always present a plan first** and wait
 
 After a code change is confirmed, check whether the change affects the architecture or project structure. If so, ask the user whether to update `CLAUDE.md`, and update it only upon confirmation.
 
+### Commits
+
+**Never commit on your own** — do not run `git add`, `git commit`, or any other commit-creating command until the user has explicitly asked you to commit (e.g. "commit", "commit it", "create a commit"). Approval to apply a code change is **not** approval to commit it; the user decides when (and whether) the change becomes a commit. Two forms of that mistake are worth naming, because both read as approval and neither is:
+
+- **An instruction which approves the work is not a commit instruction.** "go", "go ahead", and an instruction which simply names the change to make — "update doc", "delete the dead code" — approve the editing and nothing else.
+- **A commit instruction never carries forward.** Work split into several parts needs its own instruction for each part, even when the part immediately before it was committed on request. The approval covered that part, not the sequence.
+
+End a part by saying the changes are ready and what they are, then wait. The same rule applies to `git push`, branch creation, and any other shared-state action — wait for an explicit instruction.
+
+**Write the commit message in the house style** — a single line, sentence case, ending with a period, saying what the change does: `Fix code ordering.`, `Apply macOS 26 window style.` A longer single line is fine when the change needs one: `Update package manifest to 2.2.3.424.` When one commit genuinely carries several independent parts, number them — **one part per line, each its own sentence ending with a period, with no blank line between them**, as `3b7a7d6` does:
+
+    [1] Upgrade to AppBase 2.3.3.722.
+    [2] Upgrade to Avalonia 11.3.20.
+    [3] Upgrade to Avalonia XAML Behaviors 11.3.0.6.
+    [4] Upgrade to NLog 6.2.0.
+    [5] Upgrade to .NET libraries 10.0.11.
+
+Do **not** run the parts together on one line. Beware that `git log --oneline` gives no evidence either way: git reads everything up to the first blank line as the subject, so it joins the numbered lines back into one and both spellings look identical there — check with `git log --format=%B` instead. **No body, no trailers, no emoji — and never a `Co-Authored-By` trailer**, whatever the agent's own default guidance says. The repository has none, and adding one to the handful of commits an agent touched makes the history inconsistent for no benefit.
+
 ## Code Conventions
 
 ### General
