@@ -8,7 +8,8 @@ A cross-platform desktop auto-updater application built on Avalonia UI and the A
 |---|---|
 | `AutoUpdater` | Core library — update logic, view models, session management |
 | `AutoUpdater.Avalonia` | GUI entry point — Avalonia app shell, resources, localization |
-| `PackagingTool` | Console utility for building package manifests and version management |
+
+`PackagingTool.cs` is a file-based C# app at the repository root — not a project, and not part of `AutoUpdater.sln`. It builds package manifests and reports versions, and the build scripts invoke it as `dotnet run PackagingTool.cs -- <command>`.
 
 ## Build & Packaging
 
@@ -17,6 +18,7 @@ A cross-platform desktop auto-updater application built on Avalonia UI and the A
 - **Distribution**: self-contained, trimmed (partial trim mode), multi-architecture
 - **Supported RIDs**: `win-x86`, `win-x64`, `win-arm64`, `linux-x64`, `linux-arm64`, `osx-x64`, `osx-arm64`
 - **Output**: `Packages/<VERSION>/` directories produced by platform build scripts
+- **macOS window style**: before signing, `BuildMacOSPackages.sh` uses `vtool` (requires Xcode) to rewrite the linked SDK version of the application binary to `26.0`, which opts the app in to the window design of macOS 26+
 
 **Build scripts:**
 
@@ -24,9 +26,11 @@ A cross-platform desktop auto-updater application built on Avalonia UI and the A
 |---|---|
 | `BuildMacOSPackages.sh` | Build + package for macOS (osx-x64, osx-arm64) |
 | `BuildWindowsPackages.bat` | Build + package for Windows (win-x86/x64/arm64) |
-| `BuildLinuxPackages.bat` | Build + package for Linux (linux-x64, linux-arm64) |
+| `BuildLinuxPackages.sh/.bat` | Build + package for Linux (linux-x64, linux-arm64) |
 | `GeneratePackageManifest.sh/.bat` | Generate `PackageManifest-Avalonia.json` |
 | `NotarizeMacOSPackages.sh` | Code-sign and notarize macOS bundles |
+
+The `.sh` scripts archive with `ditto`, so they run on macOS — including `BuildLinuxPackages.sh`, which cross-builds the Linux packages from macOS.
 
 ## Workflow
 

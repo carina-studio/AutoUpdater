@@ -9,7 +9,7 @@ TEAM_ID=""
 echo "********** Start notarizing $APP_NAME **********"
 
 # Get application version
-VERSION=$(dotnet run --project PackagingTool get-current-version $APP_NAME/$APP_NAME.csproj)
+VERSION=$(dotnet run PackagingTool.cs -- get-current-version $APP_NAME/$APP_NAME.csproj)
 if [ "$?" != "0" ]; then
     echo "Unable to get version of $APP_NAME"
     exit

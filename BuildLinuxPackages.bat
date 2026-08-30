@@ -21,7 +21,7 @@ IF not exist Packages (
 )
 
 REM Get current version
-dotnet run --project PackagingTool get-current-version %APP_NAME%\%APP_NAME%.csproj > Packages\Packaging.txt
+dotnet run PackagingTool.cs -- get-current-version %APP_NAME%\%APP_NAME%.csproj > Packages\Packaging.txt
 if %ERRORLEVEL% neq 0 ( 
     del /Q Packages\Packaging.txt
     exit
@@ -30,7 +30,7 @@ set /p CURRENT_VERSION=<Packages\Packaging.txt
 echo Version: %CURRENT_VERSION%
 
 REM Get previous version
-dotnet run --project PackagingTool get-previous-version %APP_NAME%\%APP_NAME%.csproj > Packages\Packaging.txt
+dotnet run PackagingTool.cs -- get-previous-version %APP_NAME%\%APP_NAME%.csproj > Packages\Packaging.txt
 if %ERRORLEVEL% neq 0 ( 
     del /Q Packages\Packaging.txt
     exit
@@ -89,7 +89,7 @@ REM Build packages
 ))
 
 REM Generate package manifest
-REM dotnet run --project PackagingTool create-package-manifest linux %APP_NAME% %CURRENT_VERSION%
+REM dotnet run PackagingTool.cs -- create-package-manifest linux %APP_NAME% %CURRENT_VERSION%
 
 REM Complete
 del /Q Packages\Packaging.txt

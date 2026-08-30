@@ -6,19 +6,12 @@ CONFIG="Release"
 TRIM_ASSEMBLIES="true"
 READY_TO_RUN="false"
 MACOS_SDK_VERSION="26.0" # Linked SDK version to write into the application binary, opts-in to the window design of macOS 26+
-PACKAGING_TOOL_PATH="PackagingTool/bin/Release/$FRAMEWORK/CarinaStudio.ULogViewer.Packaging.dll"
 CERT_NAME="" # Name of certification to sign the application
 
 echo "********** Start building $APP_NAME **********"
 
-# Build packaging tool
-dotnet build PackagingTool -c Release -f $FRAMEWORK
-if [ "$?" != "0" ]; then
-    exit
-fi
-
 # Get application version
-VERSION=$(dotnet $PACKAGING_TOOL_PATH get-current-version $APP_NAME/$APP_NAME.csproj)
+VERSION=$(dotnet run PackagingTool.cs -- get-current-version $APP_NAME/$APP_NAME.csproj)
 if [ "$?" != "0" ]; then
     echo "Unable to get version of $APP_NAME"
     exit
@@ -129,4 +122,4 @@ for i in "${!RID_LIST[@]}"; do
 done
 
 # Generate package manifest
-# dotnet run --project PackagingTool create-package-manifest osx $APP_NAME $VERSION
+# dotnet run PackagingTool.cs -- create-package-manifest osx $APP_NAME $VERSION
