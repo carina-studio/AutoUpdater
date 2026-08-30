@@ -83,8 +83,8 @@ Do **not** run the parts together on one line. Beware that `git log --oneline` g
 ### Localization
 
 - String resources live in `AutoUpdater.Avalonia/Strings/`.
-- Supported cultures: `Default` (English), `zh-CN`, `zh-TW`.
-- All user-visible strings must have entries in all three resource files.
+- Supported cultures: `Default` (English), `ja-JP`, `zh-CN`, `zh-TW`.
+- All user-visible strings must have entries in all four resource files.
 
 ### Platform-Specific Code
 

@@ -174,7 +174,9 @@ namespace CarinaStudio.AutoUpdater
 
 			// setup application name
 			var cultureName = cultureInfo.Name;
-			if (cultureName.StartsWith("zh-"))
+			if (cultureName.StartsWith("ja"))
+				this.Name = "Carina Studio アプリケーション更新";
+			else if (cultureName.StartsWith("zh-"))
 			{
 				this.Name = cultureName.EndsWith("TW") 
 					? "Carina Studio 應用程式更新"
@@ -252,6 +254,22 @@ namespace CarinaStudio.AutoUpdater
 
 
 		// Program entry.
+		// Create font fallbacks which use given font families for CJK characters.
+		static FontFallback[] CreateCjkFontFallbacks(UnicodeRange unicodeRanges, string[] fontFamilyNames)
+		{
+			var fallbacks = new FontFallback[fontFamilyNames.Length];
+			for (var i = 0; i < fontFamilyNames.Length; ++i)
+			{
+				fallbacks[i] = new()
+				{
+					FontFamily = new(fontFamilyNames[i]),
+					UnicodeRange = unicodeRanges,
+				};
+			}
+			return fallbacks;
+		}
+
+
 		public static void Main(string[] args)
 		{
 			// parse arguments which are needed before creating application
@@ -287,12 +305,15 @@ namespace CarinaStudio.AutoUpdater
 				// ReSharper disable CommentTypo
 				new(0x2e80, 0x2eff), // CJKRadicalsSupplement
 				new(0x3000, 0x303f), // CJKSymbolsandPunctuation
+				new(0x3040, 0x30ff), // Hiragana, Katakana
+				new(0x31f0, 0x31ff), // KatakanaPhoneticExtensions
 				new(0x3200, 0x4dbf), // EnclosedCJKLettersandMonths, CJKCompatibility, CJKUnifiedIdeographsExtensionA
 				new(0x4e00, 0x9fff), // CJKUnifiedIdeographs
 				new(0xf900, 0xfaff), // CJKCompatibilityIdeographs
 				new(0xfe30, 0xfe4f), // CJKCompatibilityForms
 				// ReSharper restore CommentTypo
 			]);
+			var isJapanese = cultureInfo.Name.StartsWith("ja");
 			AppBuilder.Configure<App>()
 				.UsePlatformDetect()
 				.LogToTrace().Also(it =>
@@ -308,28 +329,9 @@ namespace CarinaStudio.AutoUpdater
 						it.With(new FontManagerOptions
 						{
 							// ReSharper disable StringLiteralTypo
-							FontFallbacks = [
-								new()
-								{
-									FontFamily = new("Microsoft JhengHei UI"),
-									UnicodeRange = cjkUnicodeRanges,
-								},
-								new()
-								{
-									FontFamily = new("Microsoft YaHei UI"),
-									UnicodeRange = cjkUnicodeRanges,
-								},
-								new()
-								{
-									FontFamily = new("PMingLiU"),
-									UnicodeRange = cjkUnicodeRanges,
-								},
-								new()
-								{
-									FontFamily = new("MingLiU"),
-									UnicodeRange = cjkUnicodeRanges,
-								}
-							],
+							FontFallbacks = CreateCjkFontFallbacks(cjkUnicodeRanges, isJapanese
+								? ["Yu Gothic UI", "Meiryo UI", "Microsoft JhengHei UI", "Microsoft YaHei UI", "PMingLiU", "MingLiU"]
+								: ["Microsoft JhengHei UI", "Microsoft YaHei UI", "PMingLiU", "MingLiU", "Yu Gothic UI", "Meiryo UI"]),
 							// ReSharper restore StringLiteralTypo
 						});
 					}
@@ -339,38 +341,9 @@ namespace CarinaStudio.AutoUpdater
 						{
 							DefaultFamilyName = $"avares://AutoUpdater.Avalonia/Fonts/#Inter",
 							// ReSharper disable StringLiteralTypo
-							FontFallbacks = [
-								new()
-								{
-									FontFamily = new("Noto Sans CJK TC"),
-									UnicodeRange = cjkUnicodeRanges,
-								},
-								new()
-								{
-									FontFamily = new("Noto Sans CJK SC"),
-									UnicodeRange = cjkUnicodeRanges,
-								},
-								new()
-								{
-									FontFamily = new("Noto Sans Mono CJK TC"),
-									UnicodeRange = cjkUnicodeRanges,
-								},
-								new()
-								{
-									FontFamily = new("Noto Sans Mono CJK SC"),
-									UnicodeRange = cjkUnicodeRanges,
-								},
-								new()
-								{
-									FontFamily = new("Noto Serif CJK TC"),
-									UnicodeRange = cjkUnicodeRanges,
-								},
-								new()
-								{
-									FontFamily = new("Noto Serif CJK SC"),
-									UnicodeRange = cjkUnicodeRanges,
-								}
-							],
+							FontFallbacks = CreateCjkFontFallbacks(cjkUnicodeRanges, isJapanese
+								? ["Noto Sans CJK JP", "Noto Sans Mono CJK JP", "Noto Serif CJK JP", "Noto Sans CJK TC", "Noto Sans CJK SC", "Noto Sans Mono CJK TC", "Noto Sans Mono CJK SC", "Noto Serif CJK TC", "Noto Serif CJK SC"]
+								: ["Noto Sans CJK TC", "Noto Sans CJK SC", "Noto Sans Mono CJK TC", "Noto Sans Mono CJK SC", "Noto Serif CJK TC", "Noto Serif CJK SC", "Noto Sans CJK JP", "Noto Sans Mono CJK JP", "Noto Serif CJK JP"]),
 							// ReSharper restore StringLiteralTypo
 						});
 						it.With(new X11PlatformOptions());
@@ -427,14 +400,16 @@ namespace CarinaStudio.AutoUpdater
 			this.updateMacOSAppDockTileProgressAction = new(this.UpdateMacOSAppDockTileProgress);
 
 			// load strings
-			var cultureName = cultureInfo.Name;
-			if (!cultureName.StartsWith("en-") && cultureName.StartsWith("zh"))
+			var cultureName = cultureInfo.Name switch
+			{
+				var name when name.StartsWith("ja") => "ja-JP",
+				var name when name.StartsWith("zh") => name.EndsWith("TW") ? "zh-TW" : "zh-CN",
+				_ => null,
+			};
+			if (cultureName is not null)
 			{
 				try
 				{
-					cultureName = cultureName.EndsWith("TW") 
-						? "zh-TW"
-						: "zh-CN";
 					var stringResources = new ResourceInclude(new Uri("avares://AutoUpdater.Avalonia/"))
 					{
 						Source = new Uri($"/Strings/{cultureName}.axaml", UriKind.Relative)

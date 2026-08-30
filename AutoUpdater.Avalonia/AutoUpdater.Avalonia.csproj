@@ -36,6 +36,7 @@
     <AvaloniaResource Include="Fonts/Inter-Bold.ttf" />
     <AvaloniaResource Include="Fonts/Inter-Regular.ttf" />
     <AvaloniaResource Include="Strings/Default.axaml"/>
+    <AvaloniaResource Include="Strings/ja-JP.axaml"/>
     <AvaloniaResource Include="Strings/zh-CN.axaml"/>
     <AvaloniaResource Include="Strings/zh-TW.axaml"/>
   </ItemGroup>

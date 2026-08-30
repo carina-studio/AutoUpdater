@@ -1,0 +1,30 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+										xmlns:sys="using:System">
+
+	<!-- Common -->
+	<sys:String x:Key="String.Common.Application">アプリケーション</sys:String>
+	<sys:String x:Key="String.Common.Cancel">キャンセル</sys:String>
+	<sys:String x:Key="String.Common.Complete">完了</sys:String>
+	
+	<!-- MainWindow -->
+	<sys:String x:Key="String.MainWindow.Title">アプリケーションの更新</sys:String>
+
+	<!-- UpdatingSession -->
+	<sys:String x:Key="String.UpdatingSession.BackingUpApplication">{0} をバックアップしています…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.DownloadingPackage">更新パッケージをダウンロードしています ({0})…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.Initializing">準備しています…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.InstallingPackage">{0} を更新しています…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.InstallingPackage.WithVersion">{0} を {1} に更新しています…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.Preparing">準備しています…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.RefreshApplicationIcon">アプリケーションアイコンを更新</sys:String>
+	<sys:String x:Key="String.UpdatingSession.RefreshingApplicationIcon">アプリケーションアイコンを更新しています…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.RestoringApplication">{0} を復元しています…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingCancelled">更新はキャンセルされました。</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingFailed">{0} の更新に失敗しました。</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingSucceeded">{0} の更新が完了しました。</sys:String>
+	<sys:String x:Key="String.UpdatingSession.UpdatingSucceeded.WithAppIconRefreshed.MacOS">{0} の更新が完了しました。アプリケーションアイコンを更新するには再起動が必要な場合があります。</sys:String>
+	<sys:String x:Key="String.UpdatingSession.VerifyingPackage">ダウンロードした更新パッケージを検証しています…</sys:String>
+	<sys:String x:Key="String.UpdatingSession.WaitingForProcess">{0} が閉じるのを待っています…</sys:String>
+    
+</ResourceDictionary>
