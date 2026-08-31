@@ -136,13 +136,13 @@ class UpdatingSession : AutoUpdate.ViewModels.UpdatingSession
 	protected override void OnPropertyChanged(ObservableProperty property, object? oldValue, object? newValue)
 	{
 		base.OnPropertyChanged(property, oldValue, newValue);
-		if (property == DownloadedPackageSizeProperty
-			|| property == IsUpdatingCancellingProperty
-			|| property == PackageSizeProperty)
+		if (property == DownloadedPackageSizeProp
+			|| property == IsUpdatingCancellingProp
+			|| property == PackageSizeProp)
 		{
 			this.updateMessageAction.Schedule();
 		}
-		else if (property == IsRefreshingApplicationIconProperty)
+		else if (property == IsRefreshingApplicationIconProp)
 		{
 			if (this.IsRefreshingApplicationIcon)
 				this.isAppIconRefreshed = true;
@@ -279,26 +279,26 @@ class UpdatingSession : AutoUpdate.ViewModels.UpdatingSession
 			return;
 		var appName = this.ApplicationName ?? this.Application.GetString("Common.Application");
 		if (this.IsWaitingForProcess)
-			this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.WaitingForProcess", appName));
+			this.SetValue(MessageProp, this.Application.GetFormattedString("UpdatingSession.WaitingForProcess", appName));
 		else if (this.IsUpdatingCompleted)
 		{
 			if (this.IsUpdatingCancelled)
-				this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.UpdatingCancelled"));
+				this.SetValue(MessageProp, this.Application.GetFormattedString("UpdatingSession.UpdatingCancelled"));
 			else if (this.IsUpdatingFailed)
-				this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.UpdatingFailed", appName));
+				this.SetValue(MessageProp, this.Application.GetFormattedString("UpdatingSession.UpdatingFailed", appName));
 			else if (this.isAppIconRefreshed && Platform.IsMacOS)
-				this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.UpdatingSucceeded.WithAppIconRefreshed.MacOS", appName));
+				this.SetValue(MessageProp, this.Application.GetFormattedString("UpdatingSession.UpdatingSucceeded.WithAppIconRefreshed.MacOS", appName));
 			else
-				this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.UpdatingSucceeded", appName));
+				this.SetValue(MessageProp, this.Application.GetFormattedString("UpdatingSession.UpdatingSucceeded", appName));
 		}
 		else if (this.IsRefreshingApplicationIcon)
-			this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.RefreshingApplicationIcon"));
+			this.SetValue(MessageProp, this.Application.GetFormattedString("UpdatingSession.RefreshingApplicationIcon"));
 		else
 		{
 			switch (this.UpdaterState)
 			{
 				case UpdaterState.BackingUpApplication:
-					this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.BackingUpApplication", appName));
+					this.SetValue(MessageProp, this.Application.GetFormattedString("UpdatingSession.BackingUpApplication", appName));
 					break;
 				case UpdaterState.DownloadingPackage:
 					{
@@ -306,13 +306,13 @@ class UpdatingSession : AutoUpdate.ViewModels.UpdatingSession
 						var packageSize = this.PackageSize.GetValueOrDefault();
 						// ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
 						if (packageSize > 0)
-							this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.DownloadingPackage", $"{downloadSizeString} / {packageSize.ToFileSizeString()}"));
+							this.SetValue(MessageProp, this.Application.GetFormattedString("UpdatingSession.DownloadingPackage", $"{downloadSizeString} / {packageSize.ToFileSizeString()}"));
 						else
-							this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.DownloadingPackage", downloadSizeString));
+							this.SetValue(MessageProp, this.Application.GetFormattedString("UpdatingSession.DownloadingPackage", downloadSizeString));
 					}
 					break;
 				case UpdaterState.Initializing:
-					this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.Initializing"));
+					this.SetValue(MessageProp, this.Application.GetFormattedString("UpdatingSession.Initializing"));
 					break;
 				case UpdaterState.InstallingPackage:
 					{
@@ -324,22 +324,22 @@ class UpdatingSession : AutoUpdate.ViewModels.UpdatingSession
 						});
 						// ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
 						if (!string.IsNullOrWhiteSpace(version))
-							this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.InstallingPackage.WithVersion", appName, version));
+							this.SetValue(MessageProp, this.Application.GetFormattedString("UpdatingSession.InstallingPackage.WithVersion", appName, version));
 						else
-							this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.InstallingPackage", appName));
+							this.SetValue(MessageProp, this.Application.GetFormattedString("UpdatingSession.InstallingPackage", appName));
 					}
 					break;
 				case UpdaterState.ResolvingPackage:
-					this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.Preparing"));
+					this.SetValue(MessageProp, this.Application.GetFormattedString("UpdatingSession.Preparing"));
 					break;
 				case UpdaterState.RestoringApplication:
-					this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.RestoringApplication", appName));
+					this.SetValue(MessageProp, this.Application.GetFormattedString("UpdatingSession.RestoringApplication", appName));
 					break;
 				case UpdaterState.VerifyingPackage:
-					this.SetValue(MessageProperty, this.Application.GetFormattedString("UpdatingSession.VerifyingPackage"));
+					this.SetValue(MessageProp, this.Application.GetFormattedString("UpdatingSession.VerifyingPackage"));
 					break;
 				default:
-					this.SetValue(MessageProperty, " ");
+					this.SetValue(MessageProp, " ");
 					break;
 			}
 		}
