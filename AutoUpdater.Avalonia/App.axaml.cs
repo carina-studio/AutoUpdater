@@ -877,21 +877,38 @@ namespace CarinaStudio.AutoUpdater
 		{
 			if (this.windowsTaskbarList is not null)
 				return true;
-			Win32.CoInitialize();
-			var result = Win32.CoCreateInstance(in Win32.CLSID_TaskBarList, null, Win32.CLSCTX.INPROC_SERVER, in Win32.IID_TaskBarList3, out var obj);
-			if (obj is null)
+			try
 			{
-				this.logger.LogError("Unable to create ITaskBarList3 object, result: {result}", result);
+				Win32.CoInitialize();
+				var result = Win32.CoCreateInstance(in Win32.CLSID_TaskBarList, IntPtr.Zero, Win32.CLSCTX.INPROC_SERVER, in Win32.IID_TaskBarList3, out var taskbarListPtr);
+				if (taskbarListPtr == IntPtr.Zero)
+				{
+					this.logger.LogError("Unable to create ITaskBarList3 object, result: {result}", result);
+					return false;
+				}
+				try
+				{
+					// the runtime callable wrapper takes its own reference to the COM object
+					this.windowsTaskbarList = Win32.ComWrappers.GetOrCreateObjectForComInstance(taskbarListPtr, CreateObjectFlags.None) as Win32.ITaskbarList3;
+				}
+				finally
+				{
+					Marshal.Release(taskbarListPtr);
+				}
+				if (this.windowsTaskbarList is null)
+				{
+					this.logger.LogError("Unable to get implementation of ITaskBarList3");
+					return false;
+				}
+				this.windowsTaskbarList.HrInit();
+				return true;
+			}
+			catch (Exception ex)
+			{
+				this.logger.LogError(ex, "Unable to setup ITaskBarList3");
+				this.windowsTaskbarList = null;
 				return false;
 			}
-			this.windowsTaskbarList = obj as Win32.ITaskbarList3;
-			if (this.windowsTaskbarList is null)
-			{
-				this.logger.LogError("Unable to get implementation of ITaskBarList3");
-				return false;
-			}
-			this.windowsTaskbarList.HrInit();
-			return true;
 		}
 
 

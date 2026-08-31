@@ -59,8 +59,12 @@ REM Build packages
         rmdir %APP_NAME%\bin\%CONFIG%\%FRAMEWORK%\%%r\publish /s /q
     )
 
-    REM Build project
-    dotnet publish %APP_NAME% -c %CONFIG% -r %%r --self-contained %SELF_CONTAINED% -p:PublishTrimmed=%TRIM_ASSEMBLIES% -p:PublishReadyToRun=%READY_TO_RUN%
+    REM Build project, Native AOT has no x86 target so win-x86 keeps using trimming
+    if "%%r" == "win-x86" (
+        dotnet publish %APP_NAME% -c %CONFIG% -r %%r --self-contained %SELF_CONTAINED% -p:PublishTrimmed=%TRIM_ASSEMBLIES% -p:PublishReadyToRun=%READY_TO_RUN%
+    ) else (
+        dotnet publish %APP_NAME% -c %CONFIG% -r %%r --self-contained %SELF_CONTAINED% -p:PublishAot=true
+    )
     if %ERRORLEVEL% neq 0 (
         echo Failed to build project: %ERRORLEVEL%
         del /Q Packages\Packaging.txt
@@ -68,6 +72,9 @@ REM Build packages
     )
     if exist %APP_NAME%\bin\%CONFIG%\%FRAMEWORK%\%%r\publish\ULogViewer.png (
         del /Q %APP_NAME%\bin\%CONFIG%\%FRAMEWORK%\%%r\publish\ULogViewer.png
+    )
+    if exist %APP_NAME%\bin\%CONFIG%\%FRAMEWORK%\%%r\publish\*.pdb (
+        del /Q %APP_NAME%\bin\%CONFIG%\%FRAMEWORK%\%%r\publish\*.pdb
     )
 
     REM Generate package
