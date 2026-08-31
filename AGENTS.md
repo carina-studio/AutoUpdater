@@ -36,6 +36,8 @@ The `.sh` scripts archive with `ditto`, so they run on macOS — including `Buil
 
 When solving a bug or adding a feature, **always present a plan first** and wait for explicit user approval before making any code changes.
 
+**A request to fix a bug or an issue is not approval to edit.** "fix the crash", "this is broken", "X should not happen" — and a request which already names the remedy — state a problem and the wanted outcome. They ask for a plan; the plan still has to be shown and approved before any file is touched. The same holds for "check X" and "look into X": investigate and report, then wait.
+
 After a code change is confirmed, check whether the change affects the architecture or project structure. If so, ask the user whether to update `AGENTS.md`, and update it only upon confirmation.
 
 ### Commits
