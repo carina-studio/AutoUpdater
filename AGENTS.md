@@ -15,10 +15,12 @@ A cross-platform desktop auto-updater application built on Avalonia UI and the A
 
 - **Target framework**: `net10.0` (all projects)
 - **Language**: C# with nullable reference types enabled everywhere
-- **Distribution**: self-contained, trimmed (partial trim mode), multi-architecture
+- **Distribution**: self-contained, multi-architecture. macOS publishes with Native AOT; Windows and Linux publish trimmed (partial trim mode)
 - **Supported RIDs**: `win-x86`, `win-x64`, `win-arm64`, `linux-x64`, `linux-arm64`, `osx-x64`, `osx-arm64`
 - **Output**: `Packages/<VERSION>/` directories produced by platform build scripts
 - **macOS window style**: before signing, `BuildMacOSPackages.sh` uses `vtool` (requires Xcode) to rewrite the linked SDK version of the application binary to `26.0`, which opts the app in to the window design of macOS 26+
+- **macOS Native AOT**: `BuildMacOSPackages.sh` passes `-p:PublishAot=true`, and cross-builds `osx-x64` from an arm64 host. The `TrimmerRootAssembly` items in `AutoUpdater.Avalonia.csproj` are conditioned on `'$(PublishAot)' != 'true'`: rooting `System.Private.CoreLib` fails the AOT link on an undefined `_RhIsGCBridgeActive` symbol, and the other roots have no effect under ILC
+- **macOS debug symbols**: before signing, `BuildMacOSPackages.sh` deletes the `.dSYM` bundle that Native AOT emits into `Contents/MacOS`. It is roughly two thirds of the package and nothing reads it at runtime — the binary is already stripped, and managed stack traces come from embedded metadata, not DWARF. Keep a copy from the shipped build to symbolicate native crash reports; each link produces a fresh `LC_UUID`, so a rebuilt `.dSYM` will not match
 
 **Build scripts:**
 
@@ -65,7 +67,7 @@ Do **not** run the parts together on one line. Beware that `git log --oneline` g
 - Unsafe blocks are allowed in `AutoUpdater.Avalonia`.
 - Root namespace: `CarinaStudio.AutoUpdater`.
 - All public async methods return `Task` or `ValueTask`; UI-thread operations use the application's dispatcher.
-- Trim-incompatible code must be guarded or annotated appropriately — the app uses partial trimming.
+- Trim-incompatible code must be guarded or annotated appropriately — Windows and Linux use partial trimming, and macOS uses Native AOT.
 
 ### File and Type Organization
 
