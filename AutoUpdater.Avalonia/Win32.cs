@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 
 namespace CarinaStudio.AutoUpdater;
 
-static unsafe class Win32
+static unsafe partial class Win32
 {
     public static readonly Guid CLSID_TaskBarList = new("56fdf344-fd6d-11d0-958a-006097c9a090");
+    public static readonly StrategyBasedComWrappers ComWrappers = new(); // Built-in COM interop is unavailable with Native AOT, RCWs must be created explicitly
     public static readonly Guid IID_TaskBarList3 = new("ea1afb91-9e28-4b86-90e9-9e9f8a5eefaf");
 
 
@@ -16,10 +18,10 @@ static unsafe class Win32
     }
 
 
-    [ComImport]
+    // Methods must be kept in vtable order.
+    [GeneratedComInterface(StringMarshalling = StringMarshalling.Utf16)]
     [Guid("ea1afb91-9e28-4b86-90e9-9e9f8a5eefaf")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface ITaskbarList3
+    public partial interface ITaskbarList3
     {
         // ITaskbarList
         void HrInit();
@@ -29,7 +31,7 @@ static unsafe class Win32
         void SetActiveAlt(IntPtr hwnd);
 
         // ITaskbarList2
-        void MarkFullscreenWindow(IntPtr hwnd, bool fFullscreen);
+        void MarkFullscreenWindow(IntPtr hwnd, [MarshalAs(UnmanagedType.Bool)] bool fFullscreen);
 
         // ITaskbarList3
         void SetProgressValue(IntPtr hwnd, ulong ullCompleted, ulong ullTotal);
@@ -59,7 +61,7 @@ static unsafe class Win32
 
 
     [DllImport("Ole32", SetLastError = true)]
-    public static extern int CoCreateInstance(in Guid rclsid, [MarshalAs(UnmanagedType.IUnknown)] object? pUnkOuter, CLSCTX dwClsContext, in Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object? ppv);
+    public static extern int CoCreateInstance(in Guid rclsid, IntPtr pUnkOuter, CLSCTX dwClsContext, in Guid riid, out IntPtr ppv);
     
     
     [DllImport("Ole32", SetLastError = true)]

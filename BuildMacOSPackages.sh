@@ -3,8 +3,6 @@ FRAMEWORK="net10.0"
 RID_LIST=("osx-x64" "osx-arm64")
 PUB_PLATFORM_LIST=("osx-x64" "osx-arm64")
 CONFIG="Release"
-TRIM_ASSEMBLIES="true"
-READY_TO_RUN="false"
 MACOS_SDK_VERSION="26.0" # Linked SDK version to write into the application binary, opts-in to the window design of macOS 26+
 CERT_NAME="" # Name of certification to sign the application
 
@@ -48,8 +46,8 @@ for i in "${!RID_LIST[@]}"; do
     fi
     
     # build
-    dotnet publish $APP_NAME -c $CONFIG -p:SelfContained=true -p:PublishSingleFile=false -p:PublishTrimmed=$TRIM_ASSEMBLIES -p:RuntimeIdentifier=$RID -p:PublishReadyToRun=$READY_TO_RUN
-    dotnet msbuild $APP_NAME -t:BundleApp -property:Configuration=$CONFIG -p:SelfContained=true -p:PublishSingleFile=false -p:PublishTrimmed=$TRIM_ASSEMBLIES -p:RuntimeIdentifier=$RID -p:PublishReadyToRun=$READY_TO_RUN
+    dotnet publish $APP_NAME -c $CONFIG -p:SelfContained=true -p:PublishSingleFile=false -p:RuntimeIdentifier=$RID -p:PublishAot=true
+    dotnet msbuild $APP_NAME -t:BundleApp -property:Configuration=$CONFIG -p:SelfContained=true -p:PublishSingleFile=false -p:RuntimeIdentifier=$RID -p:PublishAot=true
     if [ "$?" != "0" ]; then
         exit
     fi
@@ -75,9 +73,7 @@ for i in "${!RID_LIST[@]}"; do
     if [ "$?" != "0" ]; then
         exit
     fi
-    rm ./Packages/$VERSION/$PUB_PLATFORM/$APP_NAME.app/Contents/MacOS/libMono*.dylib
-    rm ./Packages/$VERSION/$PUB_PLATFORM/$APP_NAME.app/Contents/MacOS/*.png
-    rm ./Packages/$VERSION/$PUB_PLATFORM/$APP_NAME.app/Contents/MacOS/*.pdb
+    rm -r ./Packages/$VERSION/$PUB_PLATFORM/$APP_NAME.app/Contents/MacOS/$APP_NAME.dSYM # Debug symbols of the Native AOT binary, not needed at runtime
 
     # [Workaround] Rewrite the linked SDK version of the application binary to opt-in to the window design of macOS 26+.
     # AppKit selects window chrome by the linked SDK version of the main executable, and the .NET apphost is still

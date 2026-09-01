@@ -77,34 +77,41 @@ class MainWindow : Window
 	// Called when window opened.
 	async Task OnOpenedAsync()
 	{
-		// wait for logger configuration
-		var app = (App)App.Current;
-		await app.WaitForLoggerReadyAsync();
-
-		// start updating
-		app.UpdateTaskBarProgress(this, TaskbarIconProgressState.Indeterminate, 0);
-		if (this.DataContext is UpdatingSession session)
+		try
 		{
-			this.synchronizationContext.PostDelayed(async () =>
-			{
-				// wait for process
-				try
-				{
-					await session.WaitForProcess();
-				}
-				catch (TaskCanceledException)
-				{
-					this.synchronizationContext.Post(this.Close);
-					return;
-				}
+			// wait for logger configuration
+			var app = (App)App.Current;
+			await app.WaitForLoggerReadyAsync();
 
-				// start updating
-				if (!session.StartUpdatingCommand.TryExecute())
-					this.synchronizationContext.Post(this.Close);
-			}, 500);
+			// start updating
+			app.UpdateTaskBarProgress(this, TaskbarIconProgressState.Indeterminate, 0);
+			if (this.DataContext is UpdatingSession session)
+			{
+				this.synchronizationContext.PostDelayed(async () =>
+				{
+					// wait for process then start updating
+					try
+					{
+						await session.WaitForProcess();
+						if (!session.StartUpdatingCommand.TryExecute())
+							this.synchronizationContext.Post(this.Close);
+					}
+					catch (Exception ex)
+					{
+						if (ex is not TaskCanceledException)
+							this.logger.LogError(ex, "Error occurred while starting updating");
+						this.synchronizationContext.Post(this.Close);
+					}
+				}, 500);
+			}
+			else
+				this.synchronizationContext.Post(this.Close);
 		}
-		else
+		catch (Exception ex)
+		{
+			this.logger.LogError(ex, "Error occurred while opening window");
 			this.synchronizationContext.Post(this.Close);
+		}
 	}
 
 
