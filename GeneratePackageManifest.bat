@@ -1,6 +1,7 @@
 @echo off
 
 set APP_NAME=AutoUpdater.Avalonia
+set REPO_NAME=AutoUpdater
 set ERRORLEVEL=0
 
 echo ********** Start generating package manifest of %APP_NAME% **********
@@ -21,7 +22,7 @@ set /p CURRENT_INFORMATIONAL_VERSION=<Packages\Packaging.txt
 echo Version: %CURRENT_VERSION% (%CURRENT_INFORMATIONAL_VERSION%)
 
 REM Generate package manifest
-dotnet run PackagingTool.cs -- create-package-manifest %APP_NAME% %CURRENT_VERSION% %CURRENT_INFORMATIONAL_VERSION%
+dotnet run PackagingTool.cs -- create-package-manifest cloudflare %REPO_NAME% %CURRENT_VERSION% %CURRENT_INFORMATIONAL_VERSION%
 
 REM Complete
 del /Q Packages\Packaging.txt

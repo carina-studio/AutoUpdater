@@ -9,7 +9,10 @@ A cross-platform desktop auto-updater application built on Avalonia UI and the A
 | `AutoUpdater` | Core library — update logic, view models, session management |
 | `AutoUpdater.Avalonia` | GUI entry point — Avalonia app shell, resources, localization |
 
-`PackagingTool.cs` is a file-based C# app at the repository root — not a project, and not part of `AutoUpdater.sln`. It builds package manifests and reports versions, and the build scripts invoke it as `dotnet run PackagingTool.cs -- <command>`.
+`PackagingTool.cs` and `VerifyPackageManifests.cs` are file-based C# apps at the repository root — not projects, and not part of `AutoUpdater.sln`:
+
+- `PackagingTool.cs` builds package manifests and reports versions, and the build scripts invoke it as `dotnet run PackagingTool.cs -- <command>`.
+- `VerifyPackageManifests.cs` checks that the page and package URIs in `PackageManifest-Avalonia.json` are reachable, and downloads each package to compare its SHA256, since Cloudflare R2 provides none. Without arguments it verifies the manifest only when it has uncommitted changes; manifest paths can be passed instead: `dotnet run VerifyPackageManifests.cs [manifest ...]`.
 
 ## Build & Packaging
 
@@ -30,7 +33,7 @@ A cross-platform desktop auto-updater application built on Avalonia UI and the A
 | `BuildMacOSPackages.sh` | Build + package for macOS (osx-x64, osx-arm64) |
 | `BuildWindowsPackages.bat` | Build + package for Windows (win-x86/x64/arm64) |
 | `BuildLinuxPackages.sh/.bat` | Build + package for Linux (linux-x64, linux-arm64) |
-| `GeneratePackageManifest.sh/.bat` | Generate `PackageManifest-Avalonia.json` |
+| `GeneratePackageManifest.sh/.bat` | Generate the package manifest into `Packages/<VERSION>/PackageManifest.json`, for `PackageManifest-Avalonia.json`. Package URIs point to Cloudflare R2 (`https://packages.carinastudio.net/AutoUpdater/<Tag>/<File>`), and `PageUri` to the GitHub release page |
 | `NotarizeMacOSPackages.sh` | Code-sign and notarize macOS bundles |
 
 The `.sh` scripts archive with `ditto`, so they run on macOS — including `BuildLinuxPackages.sh`, which cross-builds the Linux packages from macOS.

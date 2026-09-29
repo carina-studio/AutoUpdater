@@ -1,4 +1,4 @@
-#:package CarinaStudio.AppSuite.Packaging@1.1.0.110
+#:package CarinaStudio.AppSuite.Packaging@1.2.0.919
 
 using CarinaStudio.AppSuite.Packaging;
 

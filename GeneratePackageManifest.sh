@@ -1,4 +1,5 @@
 APP_NAME="AutoUpdater.Avalonia"
+REPO_NAME="AutoUpdater"
 
 echo "********** Start generating package manifest of $APP_NAME **********"
 
@@ -16,4 +17,4 @@ fi
 echo "Version: $VERSION ($INFORMATIONAL_VERSION)"
 
 # Generate package manifest
-dotnet run PackagingTool.cs -- create-package-manifest $APP_NAME $VERSION $INFORMATIONAL_VERSION
+dotnet run PackagingTool.cs -- create-package-manifest cloudflare $REPO_NAME $VERSION $INFORMATIONAL_VERSION
