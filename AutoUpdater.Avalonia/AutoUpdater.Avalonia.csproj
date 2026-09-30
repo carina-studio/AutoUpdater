@@ -44,7 +44,7 @@
     <PackageReference Include="Avalonia" Version="12.1.3"/>
     <PackageReference Include="Avalonia.Desktop" Version="12.1.3"/>
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.3"/>
-    <PackageReference Include="CarinaStudio.AppBase.Application.Avalonia" Version="2.4.5.729-preview"/>
+    <PackageReference Include="CarinaStudio.AppBase.Application.Avalonia" Version="2.4.7.929"/>
     <PackageReference Include="Dotnet.Bundle" Version="0.9.13"/>
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.12"/>
     <PackageReference Include="NLog" Version="6.2.1"/>
