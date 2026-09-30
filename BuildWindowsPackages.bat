@@ -1,7 +1,7 @@
 @echo off
 
 set APP_NAME=AutoUpdater.Avalonia
-set RID_LIST=win-arm64 win-x64 win-x86
+set RID_LIST=win-arm64 win-x64
 set CONFIG=Release
 set FRAMEWORK=net10.0
 set SELF_CONTAINED=true
